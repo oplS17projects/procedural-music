@@ -16,6 +16,10 @@ The generation of this data in the note objects will use recursive loops and map
 #### Object Orientation
 Functions accessing the note data will be specially defined, and these will be the only ones that will access the data inside the objects.
 
+### Architecture Diagram
+![Architecture Diagram](/Procedural_Music_Components.pdf?raw=true "Architecture Diagram")
+
+Discription of the architecture diagram goes here.
 
 ### Samuel Toups @SamuelToups
 Will work on the racket-midi interface and the communication with the physical synth-keyboard
