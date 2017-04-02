@@ -16,6 +16,10 @@ The generation of this data in the note objects will use recursive loops and map
 #### Object Orientation
 Functions accessing the note data will be specially defined, and these will be the only ones that will access the data inside the objects.
 
+
+### Samuel Toups @SamuelToups
+Will work on the racket-midi interface and the communication with the physical synth-keyboard
+
 # Original file as follows:
 
 # Project Title Goes Here (10 words maximum)
