@@ -34,7 +34,7 @@ Conversion between the procedural music generator's output and the MIDI standard
 The evaluation of the actual procedures that generate the music is more nebulous. The goal would be to have it produce something musical, but at the very least it should produce something to play.
 
 ## Architecture Diagram
-![Architecture Diagram](/Procedural_Music_Components.pdf?raw=true "Architecture Diagram")
+![Architecture Diagram](/Procedural-Music_Components.jpg?raw=true "Architecture Diagram")
 
 Discription of the architecture diagram goes here.
 
