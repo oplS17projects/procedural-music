@@ -42,15 +42,15 @@ Discription of the architecture diagram goes here.
 
 ### First Milestone (Sun Apr 9)
 Generator: can communicate with Interface in some way.
-Interface: TBD
+Interface: Be able to send midi notes to a synthizer and provide methods for sending midi data.
 
 ### Second Milestone (Sun Apr 16)
 Generator: can generate some kind of notes which can communicate with the Interface with possible errors.
-Interface: TBD
+Interface: Be able to send instrument select and other midi control messages to the synthizer.
 
 ### Public Presentation (Mon Apr 24, Wed Apr 26, or Fri Apr 28 [your date to be determined later])
 Generator: fully generates notes and outputs to the Interface with minimal errors.
-Interface: TBD
+Interface: send midi data from the generator to the synth in real time.
 
 ### Samuel Toups @SamuelToups
 Will work on the racket-midi interface and the communication with the physical synth-keyboard.
