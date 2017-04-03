@@ -41,13 +41,16 @@ Discription of the architecture diagram goes here.
 ## Schedule
 
 ### First Milestone (Sun Apr 9)
-Which portion of the work will be completed (and committed to Github) by this day? 
+Generator: can communicate with Interface in some way.
+Interface: TBD
 
 ### Second Milestone (Sun Apr 16)
-Which portion of the work will be completed (and committed to Github) by this day?  
+Generator: can generate some kind of notes which can communicate with the Interface with possible errors.
+Interface: TBD
 
 ### Public Presentation (Mon Apr 24, Wed Apr 26, or Fri Apr 28 [your date to be determined later])
-What additionally will be completed before the public presentation?
+Generator: fully generates notes and outputs to the Interface with minimal errors.
+Interface: TBD
 
 ### Samuel Toups @SamuelToups
 Will work on the racket-midi interface and the communication with the physical synth-keyboard.
