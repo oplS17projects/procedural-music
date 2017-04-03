@@ -20,7 +20,7 @@ The random music generation techniques will be programmed in procedures, applied
 ### External Technologies
 
 #### Physical
-Procedural-music outputs MIDI data, which can be read by a wide array of synthesizers. We are using a keyboard with a built-in synthesizer.
+Procedural-music outputs MIDI data, which can be read by a wide array of synthesizers. We are using a keyboard with a built-in synthesizer that supports the General MIDI standard.
 
 #### Software
 The software needed to communicate with an external MIDI device requires drivers and wrappers. We are both working with premade drivers and libraries as well as modifying them to suit our project's needs.
@@ -36,7 +36,7 @@ The evaluation of the actual procedures that generate the music is more nebulous
 ## Architecture Diagram
 ![Architecture Diagram](/Procedural-Music_Components.jpg?raw=true "Architecture Diagram")
 
-Discription of the architecture diagram goes here.
+The midi generator code will send the data to the rtmidi interface part of the code. The rtmidi interface part of the code will then take that midi data and call functions of the rtmidi racket library, which is a wrapper for a cross-platform midi library written in c++98. The c++ library connects to the os-specific audio driver software, in the case of linux this is Jackd and alsa, and sends the midi data to the midi device. Jackd and alsa provide virtual midi cables, allowing the rtmidi library to communicate with any software or hardware midi synth.
 
 ## Schedule
 
