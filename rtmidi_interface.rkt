@@ -109,6 +109,11 @@
 
 (define (note-off port channel note) (send-midi-message port (+ 128 channel) note 0))
 (define (note-on port channel note velocity) (send-midi-message port (+ 144 channel) note velocity))
+
+; plays a note for a specified length of time in seconds, length can have arbitrary precision
+(define (play-note port channel note velocity length)
+  (thread (lambda () (note-on port channel note velocity)(sleep length)(note-off port channel note))))
+
 ; polyphonic key pressure (aftertouch)
 (define (poly-key-pressure port channel note pressure) (send-midi-message port (+ 160 channel) note pressure))
 (define (control-change port channel controller value) (send-midi-message port (+ 176 channel) controller value))
