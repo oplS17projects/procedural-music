@@ -80,7 +80,7 @@
 (define (open-out-port out-port name)
   (define i 0)
   (for ([j (in-range (out-ports-length out-port))])
-    #:break (string-contains? (list-ref (list-out-ports out-port) j) name)
+    #:break (string-contains? (list-ref (list-out-ports out-port) i) name)
     (set! i j))
   (if (not (= i (out-ports-length out-port)))
       (rtmidi-open-port out-port i)
