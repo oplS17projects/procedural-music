@@ -1,0 +1,36 @@
+#lang racket
+
+;;;;;;; GENERATORS
+
+;; make a random note id
+;; range: 0-127
+
+;; make a random velocity
+
+;; make a random duration
+
+;; make a random note
+
+;; make a sequence
+;; a short sequence of notes that sounds nice
+;; this means that they need to:
+;;;; - be within a similar octave range
+;;;; - be in the same key
+;;;; - be quantized to beats
+
+;; possible implementation
+;; (make-sequence (make-random-note))
+;; 
+
+;;;;;; **will be done in milestone 3+**
+
+;; make note list
+;; stitches together notes into a list using recursion
+;; 
+
+
+;; convert note to midi message
+;; takes the note id/velocity/duration list
+;; makes note on/note off messages with a sleep in between
+;; direct communication procedure with interface
+;;;;;; **will be done in milestone 2+**
