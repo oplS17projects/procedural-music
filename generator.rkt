@@ -25,7 +25,7 @@
 ;; 
 (define (make-random-duration)
   (define valid-notes
-    (list 1/16 1/8 1/4 1/2 3/4 1 1.5 2 2.5 3 3.5 4))
+    (list 1/16 1/8 1/4 1/2 3/4 1 3/2 2 5/2 3 7/2 4))
   (define (iter i end result)
     (if (< i end) (iter (+ i 1) end (cdr result))
         (car result)))
@@ -33,8 +33,12 @@
 
 ;; make a random note
 ;; put id, velocity, duration in a list
-(define (make-random-note)
-  (list (make-random-id) (make-random-velocity) (make-random-duration)))
+(define make-random-note
+  (lambda args
+    (cond ((null? args) (list (make-random-id) (make-random-velocity) (make-random-duration)))
+          ((null? (cdr args)) (list (make-random-id (car args)) (make-random-velocity) (make-random-duration)))
+          ((null? (cddr args)) (list (make-random-id (car args) (cadr args)) (make-random-velocity) (make-random-duration)))
+          (else (error "Invalid arguments for make-random-note")))))
 
 ;; make a sequence
 ;; a short sequence of notes that sounds nice
@@ -55,10 +59,10 @@
 ;;;;;; **will be fully done in milestone 3+**
 
 (define (make-sequence note)
-  (define range-low (- (id-of note) 12))
-  (define range-high (+ (id-of note) 12))
-  1
-  )
+  (let ((range-low (- (id-of note) 12))
+        (range-high (+ (id-of note) 12))
+        (end (random 10 30)))
+    (build-list end (lambda (x) (make-random-note range-low range-high)))))
 
 ;; make all sequences for note list
 ;; makes a list of a random number of (make-sequence)s
@@ -66,7 +70,8 @@
 ;; implementation: do a loop and cons some (make-sequence) together
 
 (define (make-all-sequences)
-  '((1)))
+  (let ((end (random 5 20)))
+    (build-list end (lambda (x) (make-sequence (make-random-note))))))
 
 ;; make note list
 ;; stitches together notes into a list using recursion
