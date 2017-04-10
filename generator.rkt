@@ -70,8 +70,9 @@
 ;; implementation: do a loop and cons some (make-sequence) together
 
 (define (make-all-sequences)
-  (let ((end (random 5 20)))
-    (build-list end (lambda (x) (make-sequence (make-random-note))))))
+  (let* ((end (random 5 20))
+        (result (build-list end (lambda (x) (make-sequence (make-random-note))))))
+    (foldr cons '() result)))
 
 ;; make note list
 ;; stitches together notes into a list using recursion
@@ -80,8 +81,15 @@
 ;; uses a list of sequences and pulls a random sequence to stich together
 ;;   from that list
 
-(define (make-note-list all-sequences)
-  '((1)))
+(define (make-note-list)
+  (define (iter i end result)
+    (if (< i end) (iter (+ i 1) end (cdr result))
+        (car result)))
+  (let* ((all-sequences (make-all-sequences))
+         (done (random (length all-sequences)))
+         (random-sequence (iter 0 done all-sequences))
+         (result (build-list (random 20) (lambda (x) random-sequence))))
+    (foldr append '() result)))
 
 ;;;;;;; ACCESSORS
 
