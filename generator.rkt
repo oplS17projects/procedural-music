@@ -3,9 +3,14 @@
 ;;;;;;; GENERATORS
 
 ;; make a random note id
-;; range: 36 - 95, i.e. no super insane low/hi notes
-(define (make-random-id)
-  (random 36 96))
+;; default range: 36 - 95, i.e. no super insane low/hi notes
+;; else range from low to high
+(define make-random-id
+  (lambda args
+    (cond ((null? args) (random 36 96))
+          ((null? (cdr args)) (random (car args)))
+          ((null? (cddr args)) (random (car args) (cadr args)))
+          (else (error "Invalid arguments for make-random-id")))))
 
 ;; make a random velocity
 ;; range: 60 - 127
@@ -47,11 +52,13 @@
 ;; possible implementation
 ;; (make-sequence (make-random-note))
 
-;;;;;; **will be done in milestone 3+**
-;;;;;; currently make-sequence is just an alias for make-note
+;;;;;; **will be fully done in milestone 3+**
 
-(define (make-sequence)
-  (make-random-note))
+(define (make-sequence note)
+  (define range-low (- (id-of note) 12))
+  (define range-high (+ (id-of note) 12))
+  1
+  )
 
 ;; make all sequences for note list
 ;; makes a list of a random number of (make-sequence)s
@@ -68,7 +75,7 @@
 ;; uses a list of sequences and pulls a random sequence to stich together
 ;;   from that list
 
-(define (make-note-list)
+(define (make-note-list all-sequences)
   '((1)))
 
 ;;;;;;; ACCESSORS
