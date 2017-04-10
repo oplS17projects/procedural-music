@@ -51,8 +51,13 @@
 ; for mor information about the midi specifications, see www.midi.org/specifications
 ; refer to the General midi specification level 1
 
+; for info on setting up midi devices and software on linux, refer to
+; http://tedfelix.com/linux/linux-midi.html
 
+; for info on setting up midi devices and software on windows, refer to
+; http://donyaquick.com/midi-on-windows/
 
+; makes the following procedures available to code that require this file
 (provide make-in-port
          make-out-port
          list-in-ports
