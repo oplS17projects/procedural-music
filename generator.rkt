@@ -50,6 +50,17 @@
 ;;;;;; **will be done in milestone 3+**
 ;;;;;; currently make-sequence is just an alias for make-note
 
+(define (make-sequence)
+  (make-random-note))
+
+;; make all sequences for note list
+;; makes a list of a random number of (make-sequence)s
+;; used as input for make-note-list
+;; implementation: do a loop and cons some (make-sequence) together
+
+(define (make-all-sequences)
+  '((1)))
+
 ;; make note list
 ;; stitches together notes into a list using recursion
 ;; basically appends sequences into a long list in a random number of times
@@ -57,13 +68,22 @@
 ;; uses a list of sequences and pulls a random sequence to stich together
 ;;   from that list
 
+(define (make-note-list)
+  '((1)))
+
 ;;;;;;; ACCESSORS
 
 ;; get the velocity from a note
+(define (velocity-of note)
+  (cadr note))
 
 ;; get duration of a note
+(define (duration-of note)
+  (caddr note))
 
 ;; get note id
+(define (id-of note)
+  (car note))
 
 ;;;;;; SPECIAL FUNCTIONS
 
