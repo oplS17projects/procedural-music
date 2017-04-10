@@ -52,6 +52,35 @@
 ; refer to the General midi specification level 1
 
 
+
+(provide make-in-port
+         make-out-port
+         list-in-ports
+         list-out-ports
+         open-in-port
+         open-out-port
+         close-in-port
+         close-out-port
+         send-midi-message
+         read-midi-message
+         note-off
+         note-on
+         play-note
+         poly-key-pressure
+         control-change
+         program-change
+         channel-pressure
+         pitch-bend
+         bank-select
+         channel-volume-change
+         set-pan
+         set-expression-controller
+         set-sustain
+         set-sostenuto
+         set-soft-pedal
+         set-local-control)
+
+
 ; Create RtMidiIn and RtMidiOut
 (define (make-in-port) (make-rtmidi-in))
 (define (make-out-port) (make-rtmidi-out))
@@ -111,6 +140,8 @@
 (define (note-on port channel note velocity) (send-midi-message port (+ 144 channel) note velocity))
 
 ; plays a note for a specified length of time in seconds, length can have arbitrary precision
+; 24 seems to be the lowest note
+; 96 seems to be the highest note
 (define (play-note port channel note velocity length)
   (thread (lambda () (note-on port channel note velocity)(sleep length)(note-off port channel note))))
 
@@ -157,6 +188,10 @@
 (define (set-soft-pedal port channel on)
   (send-midi-message port (+ 176 channel) 67 (if on 64 0)))
 
+; local control on/off (should the keyboard make sounds when keys are pressed?)
+; The piano we will be using for the demo doesn't recognize this message
+(define (set-local-control port channel on)
+  (send-midi-message port (+ 176 channel) 122 (if on 127 0)))
 
 
 
