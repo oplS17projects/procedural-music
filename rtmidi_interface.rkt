@@ -1,5 +1,7 @@
 #lang racket
 (require rtmidi)
+(require midi-readwrite)
+(require control)
 ;; see the racket documentation for this package for additional install steps
 
 ;; the following are changes that need to be made to the Makefile for the rtmidi
@@ -84,6 +86,7 @@
          set-sostenuto
          set-soft-pedal
          set-local-control)
+;         play-midi-track)
 
 
 ; Create RtMidiIn and RtMidiOut
@@ -199,6 +202,69 @@
   (send-midi-message port (+ 176 channel) 122 (if on 127 0)))
 
 
+; plays a midi track with the given tempo
+; tempo is beats per minute
+; track is a midi track structure from midi-readwrite
+(define (play-midi-track tempo track port channel)
+  (let ([time 0]
+        [tps (/ 60 tempo)])
+    (if (not (null? track))
+           (if (= time (caar track))
+               (begin
+                 (cond ((null? track) 0)
+                       ((ChannelMessage? (cadar track))
+                        (cond ((equal? (ChannelMessage-kind (cadar track)) 'note-off)
+                                       (note-off port channel (car (ChannelMessage-operands (cadar track)))))
+                              ((equal? (ChannelMessage-kind (cadar track)) 'note-on)
+                                       (note-on port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                              ((equal? (ChannelMessage-kind (cadar track)) 'aftertouch)
+                                       (poly-key-pressure port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                              ((equal? (ChannelMessage-kind (cadar track)) 'control-change)
+                                       (control-change port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                              ((equal? (ChannelMessage-kind (cadar track)) 'program-change)
+                                       (program-change port channel (car (ChannelMessage-operands (cadar track)))))
+                              ((equal? (ChannelMessage-kind (cadar track)) 'channel-aftertouch)
+                                       (channel-pressure port channel (car (ChannelMessage-operands (cadar track)))))
+                              ((equal? (ChannelMessage-kind (cadar track)) 'pitch-bend)
+                                       (pitch-bend port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))))
+                       ((SysexMessage? (cadar track)) 0)
+                       ((MetaMessage? (cadar track)) 0))
+                 (play-midi-track tempo (cdr track) port channel))
+               (sleep tps)) 0)))
+
+
+
+(define (play-midi-file path port)
+  (let* ([midi-file (midi-file-parse path)]
+        [format (MIDIFile-format midi-file)]
+        [division (MIDIFile-division midi-file)]
+        [tracks (MIDIFile-tracks midi-file)])
+    (for ([i (in-range (length tracks))])
+      (thread (lambda () (play-midi-track (TicksPerQuarter-ticks division) (list-ref tracks i) port i))))))
+
+
+;(define in (make-in-port))
+;(define out (make-out-port))
+;(open-out-port out "FLUID")
+;(open-in-port in "keyboard")
+;(open-in-port in "RtMidi")
+;(define (listen-midi-events)
+;  (let loop ()
+;    (pretty-print (sync in))
+;    (loop)))
+;(define listenthread (thread listen-midi-events))
+;5
+;(sleep 1)
+;4
+;(sleep 1)
+;3
+;(sleep 1)
+;2
+;(sleep 1)
+;1
+;(sleep 1)
+;"Playing"
+;(play-midi-file "/home/samuel/PINBALL.MID" out)
 
 
 
