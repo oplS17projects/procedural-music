@@ -86,6 +86,7 @@
          set-sostenuto
          set-soft-pedal
          set-local-control)
+;         play-midi-file
 ;         play-midi-track)
 
 
@@ -207,8 +208,9 @@
 ; track is a midi track structure from midi-readwrite
 (define (play-midi-track tempo track port channel)
   (let ([time 0]
-        [tps (/ 60 tempo)])
-    (if (not (null? track))
+        [tps (/ tempo 480000)])
+    (while (not (null? track))
+           ;(thread (λ () (println time)))
            (if (= time (caar track))
                (begin
                  (cond ((null? track) 0)
@@ -229,8 +231,12 @@
                                        (pitch-bend port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))))
                        ((SysexMessage? (cadar track)) 0)
                        ((MetaMessage? (cadar track)) 0))
-                 (play-midi-track tempo (cdr track) port channel))
-               (sleep tps)) 0)))
+                 ;(play-midi-track tempo (cdr track) port channel)
+                 (set! track (cdr track))
+                 (sleep 0))
+               (begin
+                 (set! time (+ time 1))
+                 (sleep tps))))))
 
 
 
@@ -240,7 +246,7 @@
         [division (MIDIFile-division midi-file)]
         [tracks (MIDIFile-tracks midi-file)])
     (for ([i (in-range (length tracks))])
-      (thread (lambda () (play-midi-track (TicksPerQuarter-ticks division) (list-ref tracks i) port i))))))
+      (thread (lambda () (play-midi-track (TicksPerQuarter-ticks division) (list-ref tracks i) port (- i 1)))))))
 
 
 ;(define in (make-in-port))
@@ -265,7 +271,8 @@
 ;(sleep 1)
 ;"Playing"
 ;(play-midi-file "/home/samuel/PINBALL.MID" out)
-
+;(sleep 540)
+;(play-midi-file "/home/samuel/GM_Test.mid" out)
 
 
 ;;(define (play-midi-message-list lst) (begin (sleep (car lst)) (send-midi-message (cadr lst) (caddr lst) (cadddr lst)) (if (null? (cddddr lst)) 0 (play-midi-message-list (cddddr lst)))))

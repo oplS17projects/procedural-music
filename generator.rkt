@@ -1,5 +1,17 @@
 #lang racket
 
+
+(provide make-random-id
+         make-random-velocity
+         make-random-duration
+         make-random-note
+         make-sequence
+         make-all-sequences
+         make-note-list
+         velocity-of
+         duration-of
+         id-of)
+
 ;;;;;;; GENERATORS
 
 ;; make a random note id
