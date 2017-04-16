@@ -41,7 +41,7 @@ The midi generator code will send the data to the rtmidi interface part of the c
 ## Schedule
 
 ### First Milestone (Sun Apr 9)
-Generator: can communicate with Interface in some way.
+Generator: can generate some kind of notes.
 
 Interface: Be able to send midi notes to a synthesizer and provide methods for sending midi data.
 
