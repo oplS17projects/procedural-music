@@ -269,7 +269,7 @@
                    [division (MIDIFile-division midi-data)]
                    [tracks (MIDIFile-tracks midi-data)])
               (for ([i (in-range (length tracks))])
-                (play-midi-track (TicksPerQuarter-ticks division) (list-ref tracks i) port (- i 1)))))))
+                (play-midi-track (TicksPerQuarter-ticks division) (list-ref tracks i) out-port (- i 1)))))))
 
 
 ; how to play midi files
