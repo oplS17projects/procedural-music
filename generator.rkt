@@ -1,6 +1,7 @@
 #lang racket
 
-
+; a provide statement allows other source files to access procedures,
+; by default all defines are private
 (provide make-random-id
          make-random-velocity
          make-random-duration
