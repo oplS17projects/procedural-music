@@ -1,6 +1,5 @@
 #lang racket
 
-
 (provide make-random-id
          make-random-velocity
          make-random-duration
