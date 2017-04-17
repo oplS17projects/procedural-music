@@ -1,6 +1,8 @@
 #lang racket
 (require rtmidi)
-;; see the racket documentation for this package for additional install steps
+(require midi-readwrite)
+(require control)
+;; see the racket documentation for the rtmidi package for additional install steps
 
 ;; the following are changes that need to be made to the Makefile for the rtmidi
 ;; package for racket.
@@ -83,7 +85,20 @@
          set-sustain
          set-sostenuto
          set-soft-pedal
-         set-local-control)
+         set-local-control
+         play-midi-file
+         play-midi-data
+         play-midi-track
+         ; Still need to implement the following:
+         record-midi-in-to-file
+         record-midi-out-to-file
+         echo-midi-out-to-console
+         echo-midi-in-to-console
+         echo-midi-in-to-out)
+         ;
+         ;others?
+
+
 
 
 ; Create RtMidiIn and RtMidiOut
@@ -199,34 +214,108 @@
   (send-midi-message port (+ 176 channel) 122 (if on 127 0)))
 
 
+; plays a midi track with the given tempo
+; tempo is beats per minute
+; track is a midi track structure from midi-readwrite
+; port is an out-port
+(define (play-midi-track tempo track port channel)
+  (thread (λ () 
+            (let ([time 0]
+                  ;this divisor value needs to be further researched and figured out, but seems to work well enough for now
+                  [tps (/ tempo 480000)])
+              (while (not (null? track))
+                     ;(thread (λ () (println time)))
+                     ; debug code, ignore above line
+                     (if (= time (caar track))
+                         (begin
+                           (cond ((null? track) 0)
+                                 ((ChannelMessage? (cadar track))
+                                  (cond ((equal? (ChannelMessage-kind (cadar track)) 'note-off)
+                                         (note-off port channel (car (ChannelMessage-operands (cadar track)))))
+                                        ((equal? (ChannelMessage-kind (cadar track)) 'note-on)
+                                         (note-on port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                                        ((equal? (ChannelMessage-kind (cadar track)) 'aftertouch)
+                                         (poly-key-pressure port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                                        ((equal? (ChannelMessage-kind (cadar track)) 'control-change)
+                                         (control-change port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                                        ((equal? (ChannelMessage-kind (cadar track)) 'program-change)
+                                         (program-change port channel (car (ChannelMessage-operands (cadar track)))))
+                                        ((equal? (ChannelMessage-kind (cadar track)) 'channel-aftertouch)
+                                         (channel-pressure port channel (car (ChannelMessage-operands (cadar track)))))
+                                        ((equal? (ChannelMessage-kind (cadar track)) 'pitch-bend)
+                                         (pitch-bend port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))))
+                                 ; System Exclusive messages need to be handled
+                                 ((SysexMessage? (cadar track)) 0)
+                                 ; Midi File Meta messages need to be handled
+                                 ((MetaMessage? (cadar track)) 0))
+                           ;(play-midi-track tempo (cdr track) port channel)
+                           ;debug code, ignore above line
+                           (set! track (cdr track))
+                           (sleep 0))
+                         (begin
+                           (set! time (+ time 1))
+                           (sleep tps))))))))
+
+; path is a the file path to a standard midi formated midi file, *.mid
+(define (play-midi-file path out-port)
+  (play-midi-data (midi-file-parse path) out-port))
+
+; this needs to return a list of threads to allow control over the midi worker threads
+; midi-data is a midi-file structure from midi-readwrite
+; port should be an out port
+(define (play-midi-data midi-data out-port)
+  (thread (λ () 
+            (let* ([format (MIDIFile-format midi-data)]
+                   [division (MIDIFile-division midi-data)]
+                   [tracks (MIDIFile-tracks midi-data)])
+              (for ([i (in-range (length tracks))])
+                (play-midi-track (TicksPerQuarter-ticks division) (list-ref tracks i) out-port (- i 1)))))))
 
 
+; how to play midi files
 
-;;(define (play-midi-message-list lst) (begin (sleep (car lst)) (send-midi-message (cadr lst) (caddr lst) (cadddr lst)) (if (null? (cddddr lst)) 0 (play-midi-message-list (cddddr lst)))))
+;(define in (make-in-port))
+;(define out (make-out-port))
+;(open-out-port out "FLUID")
+;(open-in-port in "keyboard")
+;(open-in-port in "RtMidi")
+;(define (listen-midi-events)
+;  (let loop ()
+;    (pretty-print (sync in))
+;    (loop)))
+;(define listenthread (thread listen-midi-events))
+;5
+;(sleep 1)
+;4
+;(sleep 1)
+;3
+;(sleep 1)
+;2
+;(sleep 1)
+;1
+;(sleep 1)
+;"Playing"
+;(define pinball-thread (play-midi-file "/home/samuel/PINBALL.MID" out))
+;(sleep 540)
+;(define gm-test-thread (play-midi-file "/home/samuel/GM_Test.mid" out))
 
-;;(define (parse-midi-message-list lst (
-;; this will eventually be able to take a list of midi messages and create a list of midi notes and other midi messages
 
+; Placeholder implementation, call sequences subject to change
 
-;(sleep 15)
+(define (record-midi-in-to-file port-in file-path)
+  0) ;TODO
 
-;(play-midi-note 2 64 93 64 0)
+(define (record-midi-out-to-file port-out file-path)
+  0) ;TODO
 
-;(printf "note sent (main)\n")
- 
-;(define (play-note note)
-; Send a note
-;(rtmidi-send-message out (list (* 11 16) 7 128))
-;(printf "sending note~n")
-;(rtmidi-send-message out (list 144 65 96))
-;(sleep 2)
-;(rtmidi-send-message out (list 128 65 64))
-;(printf "note sent~n"))
+(define (echo-midi-out-to-console port-out)
+  0) ;TODO
 
+(define (echo-midi-in-to-console port-in in-device-name)
+  0) ;TODO
 
-;(sleep 10)
-
-;(play-note)
+(define (echo-midi-in-to-out in-port out-port in-device-name out-device-name)
+  0) ;TODO
 
 
 ;(define (listen-midi-events)
