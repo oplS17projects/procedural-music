@@ -1,5 +1,12 @@
 #lang racket
 
+(require racket/stream)
+
+(define valid-notes (list 1/16 1/16 1/16 1/16 1/16 1/16 1/16 1/16
+                          1/16 1/16 1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8
+                          1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/2 1/2 1/2 1
+                          3/2 2 5/2 3 7/2 4))
+
 ;;;;;;; GENERATORS
 
 ;; make a random note id
@@ -24,12 +31,7 @@
 ;;   to pick one
 ;; 
 (define (make-random-duration)
-  (define valid-notes
-    (list 1/16 1/8 1/4 1/2 3/4 1 3/2 2 5/2 3 7/2 4))
-  (define (iter i end result)
-    (if (< i end) (iter (+ i 1) end (cdr result))
-        (car result)))
-  (iter 0 (random (length valid-notes)) valid-notes))
+    (list-ref valid-notes (random (- (length valid-notes) 1))))
 
 ;; make a random note
 ;; put id, velocity, duration in a list
@@ -39,6 +41,15 @@
           ((null? (cdr args)) (list (make-random-id (car args)) (make-random-velocity) (make-random-duration)))
           ((null? (cddr args)) (list (make-random-id (car args) (cadr args)) (make-random-velocity) (make-random-duration)))
           (else (error "Invalid arguments for make-random-note")))))
+
+
+;; make a specific note
+(define (make-note note-id duration)
+  (list note-id (make-random-velocity) duration))
+
+;; make a specific note given key
+(define (make-note-with-key key duration)
+  (list (list-ref key (random (- (length key) 1))) (make-random-velocity) duration))
 
 ;; make a sequence
 ;; a short sequence of notes that sounds nice
@@ -59,20 +70,10 @@
 ;;;;;; **will be fully done in milestone 3+**
 
 (define (make-sequence note)
-  (let ((range-low (- (id-of note) 12))
-        (range-high (+ (id-of note) 12))
-        (end (random 10 30)))
-    (build-list end (lambda (x) (make-random-note range-low range-high)))))
 
-;; make all sequences for note list
-;; makes a list of a random number of (make-sequence)s
-;; used as input for make-note-list
-;; implementation: do a loop and cons some (make-sequence) together
-
-(define (make-all-sequences)
-  (let* ((end (random 5 20))
-        (result (build-list end (lambda (x) (make-sequence (make-random-note))))))
-    (foldr cons '() result)))
+  (define valid-ids (make-key (id-of note)))
+  (define new-note (make-note-with-key valid-ids (make-random-duration)))
+  (stream-cons new-note (make-sequence note)))
 
 ;; make note list
 ;; stitches together notes into a list using recursion
@@ -81,15 +82,13 @@
 ;; uses a list of sequences and pulls a random sequence to stich together
 ;;   from that list
 
+;; MILESTONE 2: WIP. Converting to streams introduced so many problems that
+;;   I didn't have time to get this working like it did before with lists.
+;;   Implementation will be different with streams anyway, so I'm not
+;;   upset about losing any progress.
+
 (define (make-note-list)
-  (define (iter i end result)
-    (if (< i end) (iter (+ i 1) end (cdr result))
-        (car result)))
-  (let* ((all-sequences (make-all-sequences))
-         (done (random (length all-sequences)))
-         (random-sequence (iter 0 done all-sequences))
-         (result (build-list (random 20) (lambda (x) random-sequence))))
-    (foldr append '() result)))
+  (make-sequence (make-random-note)))
 
 ;;;;;;; ACCESSORS
 
@@ -107,13 +106,54 @@
 
 ;;;;;; SPECIAL FUNCTIONS
 
-;; get the key of a note
+
+;; make the key of a note
 ;; assume note is a 1, 4, or 5 and return key based on that
 ;; used for make-sequence for sequences in particular key
-;;;;; possibly milestone 3+
+;; implementation: return a list of the notes than can be
+;;    used for the key
+
+(define (make-key note-id)
+  (let ((tone-id (list-ref (list 1 4 5) (random 2))))
+    (cond ((= tone-id 1) (make-tonic-key note-id))
+          ((= tone-id 4) (make-subdom-key note-id))
+          (else (make-dom-key note-id)))))
+
+(define (make-tonic-key note-id)
+  (list note-id
+          (+ note-id 2)
+          (+ note-id 4)
+          (+ note-id 5)
+          (+ note-id 7)
+          (+ note-id 9)
+          (+ note-id 11)
+          (+ note-id 12)))
+
+(define (make-subdom-key note-id)
+  (list (- note-id 5)
+          (- note-id 3) 
+          (- note-id 1)
+          note-id
+          (+ note-id 2)
+          (+ note-id 4)
+          (+ note-id 6)
+          (+ note-id 7))) 
+
+(define (make-dom-key note-id)
+  (list (- note-id 7)
+          (- note-id 5)
+          (- note-id 3)
+          (- note-id 2) 
+          note-id
+          (+ note-id 2)
+          (+ note-id 4)
+          (+ note-id 5)))
 
 ;; convert note to midi message
 ;; takes the note id/velocity/duration list
 ;; makes note on/note off messages with a sleep in between
 ;; direct communication procedure with interface
-;;;;;; **will be done in milestone 2+**
+
+;;;;;; **will be done in milestone 3+**
+
+;(stream->list (make-sequence (make-random-note))); 
