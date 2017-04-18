@@ -269,7 +269,9 @@
                                         ((equal? (ChannelMessage-kind (cadar track)) 'pitch-bend)
                                          (pitch-bend port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))))
                                  ; System Exclusive messages need to be handled
-                                 ((SysexMessage? (cadar track)) 0)
+                                 ((SysexMessage? (cadar track))
+                                  (cond ((equal? 'set-tempo (car (MetaMessage-content (cadar track))))
+                                         (set! BPM (/ 60000000 (cadr (MetaMessage-content (cadar track))))))))
                                  ; Midi File Meta messages need to be handled
                                  ((MetaMessage? (cadar track)) 0))
                            ;(play-midi-track tempo (cdr track) port channel)
