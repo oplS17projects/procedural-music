@@ -42,6 +42,7 @@
           ((null? (cddr args)) (list (make-random-id (car args) (cadr args)) (make-random-velocity) (make-random-duration)))
           (else (error "Invalid arguments for make-random-note")))))
 
+
 ;; make a specific note
 (define (make-note note-id duration)
   (list note-id (make-random-velocity) duration))
@@ -69,6 +70,7 @@
 ;;;;;; **will be fully done in milestone 3+**
 
 (define (make-sequence note)
+
   (define valid-ids (make-key (id-of note)))
   (define new-note (make-note-with-key valid-ids (make-random-duration)))
   (stream-cons new-note (make-sequence note)))
@@ -88,7 +90,6 @@
 (define (make-note-list)
   (make-sequence (make-random-note)))
 
-
 ;;;;;;; ACCESSORS
 
 ;; get the velocity from a note
@@ -104,6 +105,7 @@
   (car note))
 
 ;;;;;; SPECIAL FUNCTIONS
+
 
 ;; make the key of a note
 ;; assume note is a 1, 4, or 5 and return key based on that
@@ -151,6 +153,7 @@
 ;; takes the note id/velocity/duration list
 ;; makes note on/note off messages with a sleep in between
 ;; direct communication procedure with interface
+
 ;;;;;; **will be done in milestone 3+**
 
 ;(stream->list (make-sequence (make-random-note))); 
