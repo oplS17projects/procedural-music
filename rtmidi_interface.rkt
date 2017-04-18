@@ -237,15 +237,16 @@
 
 
 ; plays a midi track with the given tempo
-; tempo is beats per minute
+; tempo is microseconds per quarter beat, or bpm * 60,000,000.
+; PPQN is pulses per quarter note, or the resolution of the midi-track (also called ticks per quarter note)
 ; track is a midi track structure from midi-readwrite
 ; port is an out-port
 ; channel is now taken from the midi messages instead of being passed to this procedure
-(define (play-midi-track tempo track port); channel)
+(define (play-midi-track BPM PPQN track port); channel)
   (thread (λ () 
             (let ([time 0]
                   ;this divisor value needs to be further researched and figured out, but seems to work well enough for now
-                  [tps (/ tempo 480000)])
+                  [secondsPerTick (/ 60 (* BPM PPQN))])
               (while (not (null? track))
                      ;(thread (λ () (println time)))
                      ; debug code, ignore above line
@@ -277,7 +278,26 @@
                            (sleep 0))
                          (begin
                            (set! time (+ time 1))
-                           (sleep tps))))))))
+                           (sleep secondsPerTick))))))))
+
+
+(define (get-tempo-from-meta-track track)
+  (define tempo 0)
+  (while (= tempo 0)
+         (begin
+;           (pretty-print (cadar track))
+           (cond ((MetaMessage? (cadar track))
+                  (if (equal? 'set-tempo (car (MetaMessage-content (cadar track))))
+                      (set! tempo (cadr (MetaMessage-content (cadar track))))
+                      0))
+                 ((SysexMessage? (cadar track))
+                  0)
+                 ((ChannelMessage? (cadar track))
+                  0))
+           (set! track (cdr track))))
+;  (pretty-print tempo)
+  tempo)
+                    
 
 ; path is a the file path to a standard midi formated midi file, *.mid
 (define (play-midi-file path out-port)
@@ -290,10 +310,13 @@
   (thread (λ () 
             (let* ([format (MIDIFile-format midi-data)]
                    [division (MIDIFile-division midi-data)]
-                   [tracks (MIDIFile-tracks midi-data)])
+                   [tracks (MIDIFile-tracks midi-data)]
+                   [BPM (/ 60000000 (get-tempo-from-meta-track (list-ref tracks 0)))])
               (for ([i (in-range 0 (length tracks))])
                 ;(pretty-print (if (> i 0) (ChannelMessage-channel (cadadr (list-ref tracks i))) -1))
-                  (play-midi-track (TicksPerQuarter-ticks division) (list-ref tracks i) out-port))))))
+                (play-midi-track BPM (TicksPerQuarter-ticks division) (list-ref tracks i) out-port))))))
+
+
 
 
 ; how to play midi files
