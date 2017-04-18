@@ -27,6 +27,28 @@
 ;; -	install --mode=644 RtMidi.h RtError.h $(PREFIX)/include
 
 
+
+;; until the racket library midi-readwrite is updated with my fix, the following file needs to be changed.
+;;
+;; /home/USERNAME/.racket/6.8/pkgs/midi-readwrite/midi-readwrite/midi-read.rkt
+;;
+;; the following changes need to be made
+;;
+;; (define channel (bitwise-and #x7 next-byte))
+;; needs to be changed to
+;; (define channel (bitwise-and #xf next-byte))
+;;
+;; and
+;;
+;; (define channel (bitwise-and #x7 prior-event-type-byte))
+;; needs to be changed to
+;; (define channel (bitwise-and #xf prior-event-type-byte))
+;;
+;; this is to fix an issue where 
+
+
+
+
 ; to set up a port use the following call sequence
 
 ; (define in (make-in-port))
@@ -215,14 +237,16 @@
 
 
 ; plays a midi track with the given tempo
-; tempo is beats per minute
+; tempo is microseconds per quarter beat, or bpm * 60,000,000.
+; PPQN is pulses per quarter note, or the resolution of the midi-track (also called ticks per quarter note)
 ; track is a midi track structure from midi-readwrite
 ; port is an out-port
-(define (play-midi-track tempo track port channel)
+; channel is now taken from the midi messages instead of being passed to this procedure
+(define (play-midi-track BPM PPQN track port); channel)
   (thread (λ () 
             (let ([time 0]
                   ;this divisor value needs to be further researched and figured out, but seems to work well enough for now
-                  [tps (/ tempo 480000)])
+                  [secondsPerTick (/ 60 (* BPM PPQN))])
               (while (not (null? track))
                      ;(thread (λ () (println time)))
                      ; debug code, ignore above line
@@ -231,30 +255,52 @@
                            (cond ((null? track) 0)
                                  ((ChannelMessage? (cadar track))
                                   (cond ((equal? (ChannelMessage-kind (cadar track)) 'note-off)
-                                         (note-off port channel (car (ChannelMessage-operands (cadar track)))))
+                                         (note-off port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
                                         ((equal? (ChannelMessage-kind (cadar track)) 'note-on)
-                                         (note-on port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                                         (note-on port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
                                         ((equal? (ChannelMessage-kind (cadar track)) 'aftertouch)
-                                         (poly-key-pressure port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                                         (poly-key-pressure port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
                                         ((equal? (ChannelMessage-kind (cadar track)) 'control-change)
-                                         (control-change port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                                         (control-change port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
                                         ((equal? (ChannelMessage-kind (cadar track)) 'program-change)
-                                         (program-change port channel (car (ChannelMessage-operands (cadar track)))))
+                                         (program-change port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
                                         ((equal? (ChannelMessage-kind (cadar track)) 'channel-aftertouch)
-                                         (channel-pressure port channel (car (ChannelMessage-operands (cadar track)))))
+                                         (channel-pressure port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
                                         ((equal? (ChannelMessage-kind (cadar track)) 'pitch-bend)
-                                         (pitch-bend port channel (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))))
+                                         (pitch-bend port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))))
                                  ; System Exclusive messages need to be handled
-                                 ((SysexMessage? (cadar track)) 0)
+                                 ((SysexMessage? (cadar track))
+                                  0)
                                  ; Midi File Meta messages need to be handled
-                                 ((MetaMessage? (cadar track)) 0))
+                                 ((MetaMessage? (cadar track)) 
+                                  (cond ((equal? 'set-tempo (car (MetaMessage-content (cadar track))))
+                                         (set! BPM (/ 60000000 (cadr (MetaMessage-content (cadar track)))))))))
                            ;(play-midi-track tempo (cdr track) port channel)
                            ;debug code, ignore above line
                            (set! track (cdr track))
                            (sleep 0))
                          (begin
                            (set! time (+ time 1))
-                           (sleep tps))))))))
+                           (sleep secondsPerTick))))))))
+
+
+(define (get-tempo-from-meta-track track)
+  (define tempo 0)
+  (while (= tempo 0)
+         (begin
+;           (pretty-print (cadar track))
+           (cond ((MetaMessage? (cadar track))
+                  (if (equal? 'set-tempo (car (MetaMessage-content (cadar track))))
+                      (set! tempo (cadr (MetaMessage-content (cadar track))))
+                      0))
+                 ((SysexMessage? (cadar track))
+                  0)
+                 ((ChannelMessage? (cadar track))
+                  0))
+           (set! track (cdr track))))
+;  (pretty-print tempo)
+  tempo)
+                    
 
 ; path is a the file path to a standard midi formated midi file, *.mid
 (define (play-midi-file path out-port)
@@ -267,9 +313,13 @@
   (thread (λ () 
             (let* ([format (MIDIFile-format midi-data)]
                    [division (MIDIFile-division midi-data)]
-                   [tracks (MIDIFile-tracks midi-data)])
-              (for ([i (in-range (length tracks))])
-                (play-midi-track (TicksPerQuarter-ticks division) (list-ref tracks i) out-port (- i 1)))))))
+                   [tracks (MIDIFile-tracks midi-data)]
+                   [BPM (/ 60000000 (get-tempo-from-meta-track (list-ref tracks 0)))])
+              (for ([i (in-range 0 (length tracks))])
+                ;(pretty-print (if (> i 0) (ChannelMessage-channel (cadadr (list-ref tracks i))) -1))
+                (play-midi-track BPM (TicksPerQuarter-ticks division) (list-ref tracks i) out-port))))))
+
+
 
 
 ; how to play midi files
