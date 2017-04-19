@@ -315,7 +315,6 @@
 (define (play-midi-file path out-port)
   (play-midi-data (midi-file-parse path) out-port))
 
-; this needs to return a list of threads to allow control over the midi worker threads
 ; midi-data is a midi-file structure from midi-readwrite
 ; port should be an out port
 (define (play-midi-data midi-data out-port)
