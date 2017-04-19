@@ -331,6 +331,27 @@
   midi-worker-threads)
 
 
+;(define in (make-in-port))
+;(define out (make-out-port))
+;(open-in-port in "keyboard")
+;(open-out-port out "FLUID")
+;(open-in-port in "RtMidi")
+;(define listenthread
+;  (thread
+;   (λ ()
+;     (let loop ()
+;       (pretty-print (sync in))
+;       (loop)))))
+;(define midi-threads (play-midi-file "/home/samuel/Midi_files/JustDance.mid" out))
+;(pretty-print midi-threads)
+;(define (wait-for-threads lst-threads)
+;  (if (null? lst-threads)
+;      'done
+;      (begin
+;        (thread-wait (car lst-threads))
+;        (wait-for-threads (cdr lst-threads)))))
+;(wait-for-threads midi-threads)
+  
 ; how to play midi files
 
 ;(define in (make-in-port))
@@ -354,9 +375,9 @@
 ;1
 ;(sleep 1)
 ;"Playing"
-;(define pinball-thread (play-midi-file "/home/samuel/PINBALL.MID" out))
+;(define pinball-thread (play-midi-file "/home/samuel/Midi_files/PINBALL.MID" out))
 ;(sleep 540)
-;(define gm-test-thread (play-midi-file "/home/samuel/GM_Test.mid" out))
+;(define gm-test-thread (play-midi-file "/home/samuel/Midi_files/GM_Test.mid" out))
 
 
 ; Placeholder implementation, call sequences subject to change
