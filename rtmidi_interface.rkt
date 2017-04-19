@@ -220,20 +220,32 @@
 
 ; hold1 (sustain) pedal. set on to #t to enable sustain, set on argument to #f to turn off
 (define (set-sustain port channel on)
-  (send-midi-message port (+ 176 channel) 64 (if on 64 0)))
+  (send-midi-message port (+ 176 channel) 64 (cond ((eq? on #f) 0)
+                                                   ((eq? on #t) 64)
+                                                   (else on))))
+                                             ;(if on 64 0)))
 
 ; Sostenuto pedal
 (define (set-sostenuto port channel on)
-  (send-midi-message port (+ 176 channel) 66 (if on 64 0)))
+  (send-midi-message port (+ 176 channel) 66 (cond ((eq? on #f) 0)
+                                                   ((eq? on #t) 64)
+                                                   (else on))))
+                                             ;(if on 64 0)))
 
 ; Soft pedal
 (define (set-soft-pedal port channel on)
-  (send-midi-message port (+ 176 channel) 67 (if on 64 0)))
+  (send-midi-message port (+ 176 channel) 67 (cond ((eq? on #f) 0)
+                                                   ((eq? on #t) 64)
+                                                   (else on))))
+                                             ;(if on 64 0)))
 
 ; local control on/off (should the keyboard make sounds when keys are pressed?)
 ; The piano we will be using for the demo doesn't recognize this message
 (define (set-local-control port channel on)
-  (send-midi-message port (+ 176 channel) 122 (if on 127 0)))
+  (send-midi-message port (+ 176 channel) 122 (cond ((eq? on #f) 0)
+                                                   ((eq? on #t) 127)
+                                                   (else on))))
+                                             ;(if on 127 0)))
 
 
 ; plays a midi track with the given tempo
@@ -245,11 +257,9 @@
 (define (play-midi-track BPM PPQN track port); channel)
   (thread (λ () 
             (let ([time 0]
-                  ;this divisor value needs to be further researched and figured out, but seems to work well enough for now
                   [secondsPerTick (/ 60 (* BPM PPQN))])
               (while (not (null? track))
                      ;(thread (λ () (println time)))
-                     ; debug code, ignore above line
                      (if (= time (caar track))
                          (begin
                            (cond ((null? track) 0)
@@ -273,10 +283,9 @@
                                   0)
                                  ; Midi File Meta messages need to be handled
                                  ((MetaMessage? (cadar track)) 
-                                  (cond ((equal? 'set-tempo (car (MetaMessage-content (cadar track))))
+                                  (cond ((equal? 'set-tempo (MetaMessage-content (cadar track)))
                                          (set! BPM (/ 60000000 (cadr (MetaMessage-content (cadar track)))))))))
                            ;(play-midi-track tempo (cdr track) port channel)
-                           ;debug code, ignore above line
                            (set! track (cdr track))
                            (sleep 0))
                          (begin
@@ -310,18 +319,39 @@
 ; midi-data is a midi-file structure from midi-readwrite
 ; port should be an out port
 (define (play-midi-data midi-data out-port)
-  (thread (λ () 
+;  (thread (λ ()
+  (define midi-worker-threads '())
             (let* ([format (MIDIFile-format midi-data)]
                    [division (MIDIFile-division midi-data)]
                    [tracks (MIDIFile-tracks midi-data)]
                    [BPM (/ 60000000 (get-tempo-from-meta-track (list-ref tracks 0)))])
               (for ([i (in-range 0 (length tracks))])
                 ;(pretty-print (if (> i 0) (ChannelMessage-channel (cadadr (list-ref tracks i))) -1))
-                (play-midi-track BPM (TicksPerQuarter-ticks division) (list-ref tracks i) out-port))))))
+                (set! midi-worker-threads (append midi-worker-threads (list (play-midi-track BPM (TicksPerQuarter-ticks division) (list-ref tracks i) out-port))))))
+  midi-worker-threads)
 
 
-
-
+;(define in (make-in-port))
+;(define out (make-out-port))
+;(open-in-port in "keyboard")
+;(open-out-port out "FLUID")
+;(open-in-port in "RtMidi")
+;(define listenthread
+;  (thread
+;   (λ ()
+;     (let loop ()
+;       (pretty-print (sync in))
+;       (loop)))))
+;(define midi-threads (play-midi-file "/home/samuel/Midi_files/JustDance.mid" out))
+;(pretty-print midi-threads)
+;(define (wait-for-threads lst-threads)
+;  (if (null? lst-threads)
+;      'done
+;      (begin
+;        (thread-wait (car lst-threads))
+;        (wait-for-threads (cdr lst-threads)))))
+;(wait-for-threads midi-threads)
+  
 ; how to play midi files
 
 ;(define in (make-in-port))
@@ -345,9 +375,9 @@
 ;1
 ;(sleep 1)
 ;"Playing"
-;(define pinball-thread (play-midi-file "/home/samuel/PINBALL.MID" out))
+;(define pinball-thread (play-midi-file "/home/samuel/Midi_files/PINBALL.MID" out))
 ;(sleep 540)
-;(define gm-test-thread (play-midi-file "/home/samuel/GM_Test.mid" out))
+;(define gm-test-thread (play-midi-file "/home/samuel/Midi_files/GM_Test.mid" out))
 
 
 ; Placeholder implementation, call sequences subject to change
