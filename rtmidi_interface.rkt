@@ -111,6 +111,7 @@
          play-midi-file
          play-midi-data
          play-midi-track
+         play-midi-stream
          ; Still need to implement the following:
          record-midi-in-to-file
          record-midi-out-to-file
@@ -346,6 +347,44 @@
                 ;(pretty-print (if (> i 0) (ChannelMessage-channel (cadadr (list-ref tracks i))) -1))
                 (set! midi-worker-threads (append midi-worker-threads (list (play-midi-track BPM (TicksPerQuarter-ticks division) (list-ref tracks i) out-port))))))
   midi-worker-threads)
+
+
+
+; midi-stream is a stream that gives a sequence of lists that contain a delay from the previous event, measured in seconds,
+; and a list
+; (list 0.5 (list 'event-type channel data-byte-1 data-byte-2))
+; where 
+(define (play-midi-stream out-port midi-stream)
+  (while (not (stream-empty? midi-stream))
+         (let ([midi stream-first])
+           (begin
+             (cond ((null? midi) 0)
+                   ((equal? (list-ref (cadr midi) 1) 'note-off)
+                    (sleep (car midi))
+                    (note-off out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
+                   ((equal? (list-ref (cadr midi) 1) 'note-on)
+                    (sleep (car midi))
+                    (note-on out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
+                   ((equal? (list-ref (cadr midi) 1) 'aftertouch)
+                    (sleep (car midi))
+                    (poly-key-pressure out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
+                   ((equal? (list-ref (cadr midi) 1) 'control-change)
+                    (sleep (car midi))
+                    (control-change out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
+                   ((equal? (list-ref (cadr midi) 1) 'program-change)
+                    (sleep (car midi))
+                    (program-change out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
+                   ((equal? (list-ref (cadr midi) 1) 'channel-aftertouch)
+                    (sleep (car midi))
+                    (channel-pressure out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
+                   ((equal? (list-ref (cadr midi) 1) 'pitch-bend)
+                    (sleep (car midi))
+                    (pitch-bend out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
+                   ; System Exclusive messages need to be handled
+                   ; Midi File Meta messages need to be handled
+                   (else 0))
+             (play-midi-stream out-port (stream-rest midi-stream))))))
+
 
 
 ;(define in (make-in-port))
