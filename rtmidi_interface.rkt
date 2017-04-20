@@ -44,7 +44,7 @@
 ;; needs to be changed to
 ;; (define channel (bitwise-and #xf prior-event-type-byte))
 ;;
-;; this is to fix an issue where 
+;; this is to fix an issue where midi channels 9-16 were being mapped onto midi channels 1-8
 
 
 
@@ -72,7 +72,7 @@
 
 
 
-; for mor information about the midi specifications, see www.midi.org/specifications
+; for more information about the midi specifications, see www.midi.org/specifications
 ; refer to the General midi specification level 1
 
 ; for info on setting up midi devices and software on linux, refer to
