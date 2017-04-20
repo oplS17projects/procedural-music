@@ -268,46 +268,47 @@
 ; PPQN is pulses per quarter note, or the resolution of the midi-track (also called ticks per quarter note)
 ; track is a midi track structure from midi-readwrite
 ; port is an out-port
-; channel is now taken from the midi messages instead of being passed to this procedure
-(define (play-midi-track BPM PPQN track port); channel)
-  (thread (λ ()
-            (define midi-channel -1)
-            (let ([time 0]
-                  [secondsPerTick (/ 60 (* BPM PPQN))])
-              (while (not (null? track))
-                     ;(thread (λ () (println time)))
-                     (if (= time (caar track))
-                         (begin
-                           (cond ((null? track) 0)
-                                 ((ChannelMessage? (cadar track))
-                                  (set! midi-channel (ChannelMessage-channel (cadar track)))
-                                  (cond ((equal? (ChannelMessage-kind (cadar track)) 'note-off)
-                                         (note-off port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
-                                        ((equal? (ChannelMessage-kind (cadar track)) 'note-on)
-                                         (note-on port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
-                                        ((equal? (ChannelMessage-kind (cadar track)) 'aftertouch)
-                                         (poly-key-pressure port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
-                                        ((equal? (ChannelMessage-kind (cadar track)) 'control-change)
-                                         (control-change port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
-                                        ((equal? (ChannelMessage-kind (cadar track)) 'program-change)
-                                         (program-change port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
-                                        ((equal? (ChannelMessage-kind (cadar track)) 'channel-aftertouch)
-                                         (channel-pressure port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
-                                        ((equal? (ChannelMessage-kind (cadar track)) 'pitch-bend)
-                                         (pitch-bend port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))))
-                                 ; System Exclusive messages need to be handled
-                                 ((SysexMessage? (cadar track))
-                                  0)
-                                 ; Midi File Meta messages need to be handled
-                                 ((MetaMessage? (cadar track)) 
-                                  (cond ((equal? 'set-tempo (MetaMessage-content (cadar track)))
-                                         (set! BPM (/ 60000000 (cadr (MetaMessage-content (cadar track)))))))))
-                           ;(play-midi-track tempo (cdr track) port channel)
-                           (set! track (cdr track))
-                           (sleep 0))
-                         (begin
-                           (set! time (+ time 1))
-                           (sleep secondsPerTick))))))))
+(define (play-midi-track BPM PPQN track port)
+  (thread (λ () (play-midi-track-iter BPM PPQN track port 0))))
+        
+    
+
+
+(define (play-midi-track-iter BPM PPQN track port time)
+  (let ([secondsPerTick (/ 60 (* BPM PPQN))])
+    (if (not (null? track))
+        (if (= time (caar track))
+            (cond ((ChannelMessage? (cadar track))
+                   (cond ((equal? (ChannelMessage-kind (cadar track)) 'note-off)
+                          (note-off port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
+                         ((equal? (ChannelMessage-kind (cadar track)) 'note-on)
+                          (note-on port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                         ((equal? (ChannelMessage-kind (cadar track)) 'aftertouch)
+                          (poly-key-pressure port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                         ((equal? (ChannelMessage-kind (cadar track)) 'control-change)
+                          (control-change port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track)))))
+                         ((equal? (ChannelMessage-kind (cadar track)) 'program-change)
+                          (program-change port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
+                         ((equal? (ChannelMessage-kind (cadar track)) 'channel-aftertouch)
+                          (channel-pressure port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
+                         ((equal? (ChannelMessage-kind (cadar track)) 'pitch-bend)
+                          (pitch-bend port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track))) (cadr (ChannelMessage-operands (cadar track))))))
+                   (sleep 0)
+                   (play-midi-track-iter BPM PPQN (cdr track) port time))
+                  ; System Exclusive messages need to be handled
+                  ((SysexMessage? (cadar track))
+                   (play-midi-track-iter BPM PPQN (cdr track) port time))
+                  ; Midi File Meta messages need to be handled
+                  ((MetaMessage? (cadar track))
+                   (cond ((equal? 'set-tempo (MetaMessage-content (cadar track)))
+                          (play-midi-track-iter (/ 60000000 (cadr (MetaMessage-content (cadar track)))) PPQN (cdr track) port time))
+                         (else (play-midi-track-iter BPM PPQN (cdr track) port time))))
+                  (else (play-midi-track-iter BPM PPQN (cdr track) port time)))
+            (begin
+              (sleep secondsPerTick)
+              (play-midi-track-iter BPM PPQN track port (+ time 1))))
+        0)))
+                    
 
 
 (define (get-tempo-from-meta-track track)
