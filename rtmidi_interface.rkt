@@ -356,7 +356,7 @@
 ; (list 0.5 (list 'event-type channel data-byte-1 data-byte-2))
 ; where 
 (define (play-midi-stream out-port midi-stream)
-  (while (not (stream-empty? midi-stream))
+  (if (not (stream-empty? midi-stream))
          (let ([midi stream-first])
            (begin
              (cond ((null? midi) 0)
@@ -384,7 +384,8 @@
                    ; System Exclusive messages need to be handled
                    ; Midi File Meta messages need to be handled
                    (else 0))
-             (play-midi-stream out-port (stream-rest midi-stream))))))
+             (play-midi-stream out-port (stream-rest midi-stream))))
+         0))
 
 
 
