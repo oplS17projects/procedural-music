@@ -199,6 +199,20 @@
 
 
 ; control changes and mode changes
+(define (channel-all-notes-off port channel)
+  (send-midi-message port (+ 176 channel) 123 0))
+
+(define (channel-reset-all-controllers port channel)
+  (send-midi-message port (+ 176 channel) 121 0))
+
+(define (device-all-notes-off port)
+  (for ([i (in-range 0 15)])
+    (channel-all-notes-off port i)))
+
+(define (device-reset-all-controllers port)
+  (for ([i (in-range 0 15)])
+    (channel-reset-all-controllers port i)))
+
 (define (bank-select port channel bank tone)
   (thread (lambda ()
             (send-midi-message port (+ 176 channel) 0 bank)
@@ -255,7 +269,8 @@
 ; port is an out-port
 ; channel is now taken from the midi messages instead of being passed to this procedure
 (define (play-midi-track BPM PPQN track port); channel)
-  (thread (λ () 
+  (thread (λ ()
+            (define midi-channel -1)
             (let ([time 0]
                   [secondsPerTick (/ 60 (* BPM PPQN))])
               (while (not (null? track))
@@ -264,6 +279,7 @@
                          (begin
                            (cond ((null? track) 0)
                                  ((ChannelMessage? (cadar track))
+                                  (set! midi-channel (ChannelMessage-channel (cadar track)))
                                   (cond ((equal? (ChannelMessage-kind (cadar track)) 'note-off)
                                          (note-off port (ChannelMessage-channel (cadar track)) (car (ChannelMessage-operands (cadar track)))))
                                         ((equal? (ChannelMessage-kind (cadar track)) 'note-on)
@@ -315,11 +331,12 @@
 (define (play-midi-file path out-port)
   (play-midi-data (midi-file-parse path) out-port))
 
-; this needs to return a list of threads to allow control over the midi worker threads
 ; midi-data is a midi-file structure from midi-readwrite
 ; port should be an out port
 (define (play-midi-data midi-data out-port)
 ;  (thread (λ ()
+  (device-all-notes-off out-port)
+  (device-reset-all-controllers out-port)
   (define midi-worker-threads '())
             (let* ([format (MIDIFile-format midi-data)]
                    [division (MIDIFile-division midi-data)]
@@ -342,7 +359,7 @@
 ;     (let loop ()
 ;       (pretty-print (sync in))
 ;       (loop)))))
-;(define midi-threads (play-midi-file "/home/samuel/Midi_files/JustDance.mid" out))
+;(define midi-threads (play-midi-file "/home/samuel/Midi_files/Wishmaster.mid" out))
 ;(pretty-print midi-threads)
 ;(define (wait-for-threads lst-threads)
 ;  (if (null? lst-threads)
@@ -351,6 +368,8 @@
 ;        (thread-wait (car lst-threads))
 ;        (wait-for-threads (cdr lst-threads)))))
 ;(wait-for-threads midi-threads)
+;(device-all-notes-off out)
+;(device-reset-all-controllers out)
   
 ; how to play midi files
 
