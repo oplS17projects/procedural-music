@@ -2,6 +2,11 @@
 (require rtmidi)
 (require midi-readwrite)
 (require control)
+
+;;; For best performance, run using the non-interactive mode of the command line racket interpreter, rather than DrRacket.
+
+
+
 ;; see the racket documentation for the rtmidi package for additional install steps
 
 ;; the following are changes that need to be made to the Makefile for the rtmidi
@@ -112,6 +117,10 @@
          play-midi-data
          play-midi-track
          play-midi-stream
+         channel-all-notes-off
+         channel-reset-all-controllers
+         device-all-notes-off
+         device-reset-all-controllers
          ; Still need to implement the following:
          record-midi-in-to-file
          record-midi-out-to-file
@@ -389,55 +398,7 @@
 
 
 
-;(define in (make-in-port))
-;(define out (make-out-port))
-;(open-in-port in "keyboard")
-;(open-out-port out "FLUID")
-;(open-in-port in "RtMidi")
-;(define listenthread
-;  (thread
-;   (λ ()
-;     (let loop ()
-;       (pretty-print (sync in))
-;       (loop)))))
-;(define midi-threads (play-midi-file "/home/samuel/Midi_files/Wishmaster.mid" out))
-;(pretty-print midi-threads)
-;(define (wait-for-threads lst-threads)
-;  (if (null? lst-threads)
-;      'done
-;      (begin
-;        (thread-wait (car lst-threads))
-;        (wait-for-threads (cdr lst-threads)))))
-;(wait-for-threads midi-threads)
-;(device-all-notes-off out)
-;(device-reset-all-controllers out)
-  
-; how to play midi files
 
-;(define in (make-in-port))
-;(define out (make-out-port))
-;(open-out-port out "FLUID")
-;(open-in-port in "keyboard")
-;(open-in-port in "RtMidi")
-;(define (listen-midi-events)
-;  (let loop ()
-;    (pretty-print (sync in))
-;    (loop)))
-;(define listenthread (thread listen-midi-events))
-;5
-;(sleep 1)
-;4
-;(sleep 1)
-;3
-;(sleep 1)
-;2
-;(sleep 1)
-;1
-;(sleep 1)
-;"Playing"
-;(define pinball-thread (play-midi-file "/home/samuel/Midi_files/PINBALL.MID" out))
-;(sleep 540)
-;(define gm-test-thread (play-midi-file "/home/samuel/Midi_files/GM_Test.mid" out))
 
 
 ; Placeholder implementation, call sequences subject to change
