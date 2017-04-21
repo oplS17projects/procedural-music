@@ -117,6 +117,10 @@
          play-midi-data
          play-midi-track
          play-midi-stream
+         channel-all-notes-off
+         channel-reset-all-controllers
+         device-all-notes-off
+         device-reset-all-controllers
          ; Still need to implement the following:
          record-midi-in-to-file
          record-midi-out-to-file
