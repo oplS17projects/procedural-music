@@ -2,7 +2,7 @@
 (require rtmidi)
 (require midi-readwrite)
 (require control)
-
+(require racket/stream)
 ;;; For best performance, run using the non-interactive mode of the command line racket interpreter, rather than DrRacket.
 
 
@@ -366,30 +366,31 @@
 ; where 
 (define (play-midi-stream out-port midi-stream)
   (if (not (stream-empty? midi-stream))
-         (let ([midi stream-first])
+         (let ([midi (stream-first midi-stream)])
            (begin
+             (pretty-print (stream-ref midi-stream 0))
              (cond ((null? midi) 0)
-                   ((equal? (list-ref (cadr midi) 1) 'note-off)
+                   ((equal? (list-ref (cadr midi) 0) 'note-off)
                     (sleep (car midi))
-                    (note-off out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
-                   ((equal? (list-ref (cadr midi) 1) 'note-on)
+                    (note-off out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2)))
+                   ((equal? (list-ref (cadr midi) 0) 'note-on)
                     (sleep (car midi))
-                    (note-on out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
-                   ((equal? (list-ref (cadr midi) 1) 'aftertouch)
+                    (note-on out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
+                   ((equal? (list-ref (cadr midi) 0) 'aftertouch)
                     (sleep (car midi))
                     (poly-key-pressure out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
                    ((equal? (list-ref (cadr midi) 1) 'control-change)
                     (sleep (car midi))
-                    (control-change out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
-                   ((equal? (list-ref (cadr midi) 1) 'program-change)
+                    (control-change out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
+                   ((equal? (list-ref (cadr midi) 0) 'program-change)
                     (sleep (car midi))
-                    (program-change out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
-                   ((equal? (list-ref (cadr midi) 1) 'channel-aftertouch)
+                    (program-change out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
+                   ((equal? (list-ref (cadr midi) 0) 'channel-aftertouch)
                     (sleep (car midi))
-                    (channel-pressure out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
-                   ((equal? (list-ref (cadr midi) 1) 'pitch-bend)
+                    (channel-pressure out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
+                   ((equal? (list-ref (cadr midi) 0) 'pitch-bend)
                     (sleep (car midi))
-                    (pitch-bend out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
+                    (pitch-bend out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
                    ; System Exclusive messages need to be handled
                    ; Midi File Meta messages need to be handled
                    (else 0))
