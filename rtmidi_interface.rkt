@@ -371,7 +371,7 @@
   (if (not (stream-empty? midi-stream))
       (let ([midi (stream-first midi-stream)])
         (begin
-          (pretty-print (stream-ref midi-stream 0))
+          ;(pretty-print (stream-ref midi-stream 0))
           (cond ((null? midi) 0)
                 ((equal? (list-ref (cadr midi) 0) 'note-off)
                  (sleep (car midi))
