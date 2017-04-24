@@ -1,6 +1,8 @@
 #lang racket
 
 (require racket/stream)
+(require "rtmidi_interface.rkt")
+
 
 (define valid-notes (list 1/16 1/16 1/16 1/16 1/16 1/16 1/16 1/16
                           1/16 1/16 1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8
@@ -149,11 +151,16 @@
           (+ note-id 4)
           (+ note-id 5)))
 
-;; convert note to midi message
-;; takes the note id/velocity/duration list
-;; makes note on/note off messages with a sleep in between
-;; direct communication procedure with interface
+;; convert beat to seconds
+(define (bpm->second bpm beat)
+  (* (/ 60 bpm) beat))
 
-;;;;;; **will be done in milestone 3+**
+;; play a note from generator through interface
+(define (play-gnote port channel note bpm)
+  (play-note port channel (id-of note) (velocity-of note) (bpm->second bpm (duration-of note))))
 
-;(stream->list (make-sequence (make-random-note))); 
+;; play a sequence through the interface
+
+(define (play-sequence port channel stream bpm)
+  (let ((proc (lambda (note) (play-gnote port channel note bpm))))
+    (stream-map proc stream)))
