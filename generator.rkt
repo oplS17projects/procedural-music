@@ -3,6 +3,21 @@
 (require racket/stream)
 (require "rtmidi_interface.rkt")
 
+(provide valid-notes
+         make-random-id
+         make-random-velocity
+         make-random-note
+         make-note
+         make-note-with-key
+         make-sequence
+         make-note-list
+         velocity-of
+         duration-of
+         id-of
+         make-key
+         bpm->second
+         play-gnote
+         play-sequence)
 
 (define valid-notes (list 1/16 1/16 1/16 1/16 1/16 1/16 1/16 1/16
                           1/16 1/16 1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8
@@ -116,13 +131,8 @@
 ;;    used for the key
 
 (define (make-key note-id)
-  (let ((tone-id (list-ref (list 1 4 5) (random 2))))
-    (cond ((= tone-id 1) (make-tonic-key note-id))
-          ((= tone-id 4) (make-subdom-key note-id))
-          (else (make-dom-key note-id)))))
-
-(define (make-tonic-key note-id)
-  (list note-id
+  (define (make-tonic-key note-id)
+    (list note-id
           (+ note-id 2)
           (+ note-id 4)
           (+ note-id 5)
@@ -130,9 +140,8 @@
           (+ note-id 9)
           (+ note-id 11)
           (+ note-id 12)))
-
-(define (make-subdom-key note-id)
-  (list (- note-id 5)
+  (define (make-subdom-key note-id)
+    (list (- note-id 5)
           (- note-id 3) 
           (- note-id 1)
           note-id
@@ -140,9 +149,8 @@
           (+ note-id 4)
           (+ note-id 6)
           (+ note-id 7))) 
-
-(define (make-dom-key note-id)
-  (list (- note-id 7)
+  (define (make-dom-key note-id)
+    (list (- note-id 7)
           (- note-id 5)
           (- note-id 3)
           (- note-id 2) 
@@ -150,6 +158,10 @@
           (+ note-id 2)
           (+ note-id 4)
           (+ note-id 5)))
+  (let ((tone-id (list-ref (list 1 4 5) (random 2))))
+    (cond ((= tone-id 1) (make-tonic-key note-id))
+          ((= tone-id 4) (make-subdom-key note-id))
+          (else (make-dom-key note-id)))))
 
 ;; convert beat to seconds
 (define (bpm->second bpm beat)
