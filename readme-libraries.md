@@ -1,8 +1,10 @@
 This project depends on the following libraries:
 
-rtmidi: a racket wrapper for the RtMidi library
-RtMidi: a c++ library for interacting with midi devices
-midi-readwrite: a racket library for accessing midi data and files
+rtmidi: a racket wrapper for the RtMidi library, which can be found [here](http://docs.racket-lang.org/rtmidi/index.html)
+
+RtMidi: a c++ library for interacting with midi devices, rtmidi depends on version 2.1.0, which can be found [here](http://www.music.mcgill.ca/~gary/rtmidi/release/)
+
+midi-readwrite: a racket library for accessing midi data and files, which can be found [here](https://docs.racket-lang.org/midi/index.html)
 
 
 Installing and configuring the 3rd party libraries for this project is not quite straight forward.
@@ -20,13 +22,17 @@ system specific install commands are still needed for mac and windows
 the following lines need to be added
 
 unix: CXXFLAGS += -D__UNIX_JACK__ -ljack
+
 unix: LDFLAGS += -ljack -lpthread
+
 unix: wrap-rtmidi.so
 
 install-unix: unix
+
 cp wrap-rtmidi.so /usr/lib/
 
 install-linux: linux
+
 cp wrap-rtmidi.so /usr/lib/
 
 
@@ -45,13 +51,17 @@ until the racket library midi-readwrite is updated with my fix, the following fi
 the following changes need to be made
 
 (define channel (bitwise-and #x7 next-byte))
+
 needs to be changed to
+
 (define channel (bitwise-and #xf next-byte))
 
 and
 
 (define channel (bitwise-and #x7 prior-event-type-byte))
+
 needs to be changed to
+
 (define channel (bitwise-and #xf prior-event-type-byte))
 
 this is to fix an issue where midi channels 9-16 were being mapped onto midi channels 1-8
@@ -63,3 +73,5 @@ http://tedfelix.com/linux/linux-midi.html
 
 for info on setting up midi devices and software on windows, refer to
 http://donyaquick.com/midi-on-windows/
+
+need to find a link to a resource for setting up midi on Mac
