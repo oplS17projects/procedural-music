@@ -23,7 +23,13 @@ The random music generation techniques will be programmed in procedures, applied
 Procedural-music outputs MIDI data, which can be read by a wide array of synthesizers. We are using a keyboard with a built-in synthesizer that supports the General MIDI standard.
 
 #### Software
-The software needed to communicate with an external MIDI device requires drivers and wrappers. We are both working with premade drivers and libraries as well as modifying them to suit our project's needs.
+This project depends on the following libraries:
+
+rtmidi:         racket wrapper for the RtMidi library
+RtMidi:         c++ library for interfacing with software and hardware midi devices
+midi-readwrite: racket library for processing midi data
+
+Using these three libraries, the software can communicate with any external MIDI device. Some of the libraries needed modifying to suit our project's needs, most noteably the install scripts for rtmidi and RtMidi needed some slight adjustments, and the midi-readwrite library was found to have a bug which caused midi channels 9-16 to be mapped to channels 1-8.
 
 ### Deliverable and Demonstration
 When we are finished, we will have a program that can take commands and produce music. The specific lexicon and implementation of these commands is yet to be determined, but at the very least, a procedure to produce a certain length of music will be a part of the final deliverable.
