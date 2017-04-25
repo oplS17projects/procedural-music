@@ -31,6 +31,8 @@ midi-readwrite: racket library for processing midi data
 
 Using these three libraries, the software can communicate with any external MIDI device. Some of the libraries needed modifying to suit our project's needs, most noteably the install scripts for rtmidi and RtMidi needed some slight adjustments, and the midi-readwrite library was found to have a bug which caused midi channels 9-16 to be mapped to channels 1-8.
 
+See [readme-libraries](./readme-libraries.md) for more details.
+
 ### Deliverable and Demonstration
 The program can take commands and produce music. It fully exports MIDI data commands to an external MIDI device or internal MIDI program, and the generator produces music that is made of completely random notes.
 
