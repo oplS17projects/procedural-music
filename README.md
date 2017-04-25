@@ -3,19 +3,19 @@
 A procedural MIDI music generator in Racket.
 
 ### Statement
-Procedural-music is a program that will produce MIDI music sequences. Both of us are interested in music and the technology surrounding it, making the project an easy choice.
+Procedural-music is a program that produces MIDI music sequences. Both of us are interested in music and the technology surrounding it, making the project an easy choice.
 
 ### Analysis
 This project makes use of data objects, abstraction, recursion, and functional programming, all fundamentals of the OPL course.
 
 #### Data Abstraction/Objects
-When the MIDI data is generated, functions will be defined to access specific portions of the objects. The data will be stored in a list of note objects, which include the relevant MIDI data of commands, keys, velocities, and whatnot. When output to the protocol that sends these values to the synthesizer, functions will be defined to access the data as well.
+When the MIDI data is generated, functions are defined to access specific portions of the objects. The data is stored in a list of note objects, which include the relevant MIDI data of commands, keys, velocities, and whatnot. When output to the protocol that sends these values to the synthesizer, functions can access the data as well.
 
 #### Recursion/Map/Filter/Reduce
-The generation of this data in the note objects will use recursive loops and maps. In addition, recursive loops will be used to check and make sure the data being generated is valid MIDI data.
+The generation of this data in the note objects uses recursive loops and maps.
 
 #### Functional Programming
-The random music generation techniques will be programmed in procedures, applied with maps or filters across the note objects. 
+The random music generation techniques are programmed in procedures, applied with procedures applied using streams. 
 
 ### External Technologies
 
