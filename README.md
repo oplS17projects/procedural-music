@@ -26,17 +26,17 @@ Procedural-music outputs MIDI data, which can be read by a wide array of synthes
 The software needed to communicate with an external MIDI device requires drivers and wrappers. We are both working with premade drivers and libraries as well as modifying them to suit our project's needs.
 
 ### Deliverable and Demonstration
-When we are finished, we will have a program that can take commands and produce music. The specific lexicon and implementation of these commands is yet to be determined, but at the very least, a procedure to produce a certain length of music will be a part of the final deliverable.
+The program can take commands and produce music. It fully exports MIDI data commands to an external MIDI device or internal MIDI program, and the generator produces music that is made of completely random notes.
 
 ### Evaluation of Results
 Conversion between the procedural music generator's output and the MIDI standard is the goal here; when we can input some dummy data and have it perform as expected, this part of the project will be done.
 
-The evaluation of the actual procedures that generate the music is more nebulous. The goal would be to have it produce something musical, but at the very least it should produce something to play.
+The evaluation of the actual procedures that generate the music is more nebulous. The goal was to have it produce something musical, but at the very least it produces something to play.
 
 ## Architecture Diagram
 ![Architecture Diagram](/Procedural-Music_Components.jpg?raw=true "Architecture Diagram")
 
-The midi generator code will send the data to the rtmidi interface part of the code. The rtmidi interface part of the code will then take that midi data and call functions of the rtmidi racket library, which is a wrapper for a cross-platform midi library written in c++98. The c++ library connects to the os-specific audio driver software, in the case of linux this is Jackd and alsa, and sends the midi data to the midi device. Jackd and alsa provide virtual midi cables, allowing the rtmidi library to communicate with any software or hardware midi synth.
+The midi generator code sends the data to the rtmidi interface part of the code. The rtmidi interface part of the code then takes that midi data and calls functions of the rtmidi racket library, which is a wrapper for a cross-platform midi library written in c++98. The c++ library connects to the os-specific audio driver software, in the case of linux this is Jackd and alsa, and sends the midi data to the midi device. Jackd and alsa provide virtual midi cables, allowing the rtmidi library to communicate with any software or hardware midi synth.
 
 ## Schedule
 
@@ -50,13 +50,13 @@ Generator: can generate some kind of notes which can communicate with the Interf
 
 Interface: Be able to send instrument select and other midi control messages to the synthesizer.
 
-### Public Presentation (Mon Apr 24, Wed Apr 26, or Fri Apr 28 [your date to be determined later])
+### Public Presentation (Wed Apr 26)
 Generator: fully generates notes and outputs to the Interface with minimal errors.
 
 Interface: send midi data from the generator to the synth in real time.
 
 ### Samuel Toups @SamuelToups
-Will work on the racket-midi interface and the communication with the physical synth-keyboard.
+Worked on the racket-midi interface and the communication with the physical synth-keyboard.
 
 ### Brian Medina @probune
-Will provide the procedures that produce the music.
+Provided the procedures that produce the music.
