@@ -1,7 +1,7 @@
 #lang racket
 
-(require (file "Procedural-Music/procedural-music/rtmidi_interface.rkt"))
-(require (file "Procedural-Music/procedural-music/generator.rkt"))
+(require "rtmidi_interface.rkt")
+(require "generator.rkt")
 
 
 (define (process-stream channel notestream bpm)
