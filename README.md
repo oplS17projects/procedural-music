@@ -35,9 +35,9 @@ Using these three libraries, the software can communicate with any external MIDI
 The program can take commands and produce music. It fully exports MIDI data commands to an external MIDI device or internal MIDI program, and the generator produces music that is made of completely random notes.
 
 ### Evaluation of Results
-Conversion between the procedural music generator's output and the MIDI standard is the goal here; when we can input some dummy data and have it perform as expected, this part of the project will be done.
+Conversion between the procedural music generator's output and the MIDI standard was the goal here; we can input some dummy data and it performs as expected,meaning this part of the project is done.
 
-The evaluation of the actual procedures that generate the music is more nebulous. The goal was to have it produce something musical, but at the very least it produces something to play.
+The evaluation of the actual procedures that generate the music was more nebulous. The goal was to have it produce something musical, but at the very least it produces something to play.
 
 ## Architecture Diagram
 ![Architecture Diagram](/Procedural-Music_Components.jpg?raw=true "Architecture Diagram")
