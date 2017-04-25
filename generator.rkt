@@ -1,11 +1,12 @@
 #lang racket
 
 (require racket/stream)
-(require "rtmidi_interface.rkt")
+;(require "rtmidi_interface.rkt")
 
 (provide valid-notes
          make-random-id
          make-random-velocity
+         make-random-duration
          make-random-note
          make-note
          make-note-with-key
@@ -169,10 +170,8 @@
 
 ;; play a note from generator through interface
 (define (play-gnote port channel note bpm)
-  (play-note port channel (id-of note) (velocity-of note) (bpm->second bpm (duration-of note))))
+  1)
 
 ;; play a sequence through the interface
-
 (define (play-sequence port channel stream bpm)
-  (let ((proc (lambda (note) (play-gnote port channel note bpm))))
-    (stream-map proc stream)))
+  1)
