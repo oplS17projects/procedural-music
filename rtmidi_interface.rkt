@@ -131,7 +131,7 @@
          record-midi-out-to-file
          echo-midi-out-to-console
          echo-midi-in-to-console
-         echo-midi-in-to-out
+         echo-midi-in-to-out)
          ;
          ;others?
 
