@@ -3,6 +3,10 @@
 (require "rtmidi_interface.rkt")
 (require "generator.rkt")
 
+(define (generate-chord-secondary notestream)
+  (stream-cons
+   (make-note-with-key (make-key (id-of (stream-first notestream))) (duration-of (stream-first notestream)))
+   (generate-chord-secondary (stream-rest notestream))))
 
 (define (process-stream channel notestream bpm)
   (stream-cons
@@ -47,7 +51,3 @@
 
 
 
-(define (generate-chord-secondary notestream)
-  (stream-cons
-   (make-note-with-key (make-key (id-of (stream-first notestream))) (duration-of (stream-first notestream)))
-   (generate-chord-secondary (stream-rest notestream))))
