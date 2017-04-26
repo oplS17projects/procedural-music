@@ -181,7 +181,23 @@
 (define (read-midi-message port)
   (sync port))
 
+;; accessors for midi events
 
+(define (delay-of midi-event)
+  (car midi-event))
+
+(define (type-of midi-event)
+  (list-ref (cadr midi-event) 0))
+
+(define (channel-of midi-event)
+  (list-ref (cadr midi-event) 1))
+
+(define (first-data-byte-of midi-event)
+  (list-ref (cadr midi-event) 2))
+
+(define (second-data-byte-of midi-event)
+  (list-ref (cadr midi-event) 3))
+         
 
 ;; all values start from 0
 ;; channel 1 is channel number 0, channel 10 (purcusion) is channel number 9
@@ -370,35 +386,33 @@
 (define (play-midi-stream-iter out-port midi-stream)
   (if (not (stream-empty? midi-stream))
       (let ([midi (stream-first midi-stream)])
-        (begin
-          (pretty-print (stream-ref midi-stream 0))
+          ;(pretty-print (stream-ref midi-stream 0))
           (cond ((null? midi) 0)
-                ((equal? (list-ref (cadr midi) 0) 'note-off)
-                 (sleep (car midi))
-                 (note-off out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2)))
-                ((equal? (list-ref (cadr midi) 0) 'note-on)
-                 (sleep (car midi))
-                 (note-on out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
-                ((equal? (list-ref (cadr midi) 0) 'aftertouch)
-                 (sleep (car midi))
-                 (poly-key-pressure out-port (list-ref (cadr midi) 2) (list-ref (cadr midi) 3) (list-ref (cadr midi) 4)))
-                ((equal? (list-ref (cadr midi) 1) 'control-change)
-                 (sleep (car midi))
-                 (control-change out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
-                ((equal? (list-ref (cadr midi) 0) 'program-change)
-                 (sleep (car midi))
-                 (program-change out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
-                ((equal? (list-ref (cadr midi) 0) 'channel-aftertouch)
-                 (sleep (car midi))
-                 (channel-pressure out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
-                ((equal? (list-ref (cadr midi) 0) 'pitch-bend)
-                 (sleep (car midi))
-                 (pitch-bend out-port (list-ref (cadr midi) 1) (list-ref (cadr midi) 2) (list-ref (cadr midi) 3)))
+                ((equal? (type-of midi) 'note-off)
+                 (sleep (delay-of midi))
+                 (note-off out-port (channel-of midi) (first-data-byte-of midi)))
+                ((equal? (type-of midi) 'note-on)
+                 (sleep (delay-of midi))
+                 (note-on out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'aftertouch)
+                 (sleep (delay-of midi))
+                 (poly-key-pressure out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'control-change)
+                 (sleep (delay-of midi))
+                 (control-change out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'program-change)
+                 (sleep (delay-of midi))
+                 (program-change out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'channel-aftertouch)
+                 (sleep (delay-of midi))
+                 (channel-pressure out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'pitch-bend)
+                 (sleep (delay-of midi))
+                 (pitch-bend out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
                 ; System Exclusive messages need to be handled
                 ; Midi File Meta messages need to be handled
-                (else (sleep 0)))
+                (else (sleep 0))))
           (play-midi-stream-iter out-port (stream-rest midi-stream))))
-      0))
 
 
 
