@@ -36,6 +36,9 @@ install-linux: linux
 cp wrap-rtmidi.so /usr/lib/
 
 
+When building the library, run make install-[OS], where [OS] is the operating system you are on.
+
+
 
 the following are changes that need to be made to the Makefile for RtMidi-2.1.0
 the following line needs to be commented out
