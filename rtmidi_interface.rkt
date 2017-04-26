@@ -126,7 +126,12 @@
          record-midi-out-to-file
          echo-midi-out-to-console
          echo-midi-in-to-console
-         echo-midi-in-to-out)
+         echo-midi-in-to-out
+         delay-of
+         type-of
+         channel-of
+         first-data-byte-of
+         second-data-byte-of)
          ;
          ;others?
 
