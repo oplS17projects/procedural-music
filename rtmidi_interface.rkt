@@ -117,6 +117,11 @@
          play-midi-data
          play-midi-track
          play-midi-stream
+         delay-of
+         type-of
+         channel-of
+         first-data-byte-of
+         second-data-byte-of
          channel-all-notes-off
          channel-reset-all-controllers
          device-all-notes-off
@@ -127,11 +132,6 @@
          echo-midi-out-to-console
          echo-midi-in-to-console
          echo-midi-in-to-out
-         delay-of
-         type-of
-         channel-of
-         first-data-byte-of
-         second-data-byte-of)
          ;
          ;others?
 
