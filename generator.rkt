@@ -17,8 +17,7 @@
          id-of
          make-key
          bpm->second
-         play-gnote
-         play-sequence)
+         make-random-bpm)
 
 (define valid-notes (list 1/16 1/16 1/16 1/16 1/16 1/16 1/16 1/16
                           1/16 1/16 1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8
@@ -168,10 +167,4 @@
 (define (bpm->second bpm beat)
   (* (/ 60 bpm) beat))
 
-;; play a note from generator through interface
-(define (play-gnote port channel note bpm)
-  1)
-
-;; play a sequence through the interface
-(define (play-sequence port channel stream bpm)
-  1)
+(define (make-random-bpm) (random 60 120))
