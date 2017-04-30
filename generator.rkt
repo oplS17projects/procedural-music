@@ -180,5 +180,3 @@
 
 ;; make a bpm in range 60 to 120
 (define (make-random-bpm) (random 60 120))
-
-(make-note-list)
