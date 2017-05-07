@@ -72,7 +72,7 @@ The first procedure returns a thread object that immeadiately begins processing 
 
 ## 2. Using Procedures to Open and Close Ports
 
-This code allows for opening and closing midi ports, and connecting them to other midi devices.
+This code allows for opening and closing midi ports, and connecting them to other midi devices and sending and recieving midi data through the ports.
 
 ```
 (define (make-in-port) (make-rtmidi-in))
@@ -112,8 +112,9 @@ This code allows for opening and closing midi ports, and connecting them to othe
   (sync port))
 ```
 
-I particularly like my code for opening a given port based on just part of the identifier string.
+The ```make-in-port``` and ```make-out-port``` procedures initialize virtual midi ports from RtMidi.
 
+```open-in-port``` and ```open-out-port``` connect ports to other midi ports available on the system by getting the list of available ports and matching a string against the names of those ports.
 
 ## 3. Procedural Abstraction
 
