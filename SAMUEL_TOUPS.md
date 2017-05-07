@@ -118,6 +118,8 @@ The ```make-in-port``` and ```make-out-port``` procedures initialize virtual mid
 
 ## 3. Procedural Abstraction
 
+A set of procedures was created for accessing the different parts of a midi event structure. ```midi-readwrite``` processes midi events to a list, ```'(delay (event channel data-1 data-2))``` where delay is how many seconds to delay after the previous event, event is the type of midi message (i.e. 'note-on), channel is the midi channel number from 0 to 15, and data-1 and data-2 are the arguments to the midi message, (i.e. note number and key-hit velocity)
+
 ```
 (define (delay-of midi-event)
   (car midi-event))
