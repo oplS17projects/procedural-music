@@ -17,8 +17,7 @@
          id-of
          make-key
          bpm->second
-         play-gnote
-         play-sequence)
+         make-random-bpm)
 
 (define valid-notes (list 1/16 1/16 1/16 1/16 1/16 1/16 1/16 1/16
                           1/16 1/16 1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8
@@ -38,16 +37,15 @@
           (else (error "Invalid arguments for make-random-id")))))
 
 ;; make a random velocity
-;; range: 60 - 127
+;; range: 60 - 127, no insane low values
+
 (define (make-random-velocity)
   (random 60 128))
 
 ;; make a random duration
 ;; in beats
 ;; range: specific durations
-;; implementation: use list of ranges and recurse through with random int
-;;   to pick one
-;; 
+
 (define (make-random-duration)
     (list-ref valid-notes (random (- (length valid-notes) 1))))
 
@@ -69,41 +67,55 @@
 (define (make-note-with-key key duration)
   (list (list-ref key (random (- (length key) 1))) (make-random-velocity) duration))
 
+;; make a note given key when we want a random duration
+(define (make-random-note-with-key key)
+  (list (list-ref key (random (- (length key) 1))) (make-random-velocity) (make-random-duration)))
+
+;; make a bar
+;; takes a note as input, makes a bar of music based on the key
+;;   time signature random between 4/4 or 3/4, i.e. 3 or 4 beats
+;;   per bar
+(define (make-random-bar initial-note beats)
+  (define key (make-key (id-of initial-note)))
+  (define (iter note index limit)
+    (cond ((< (+ index (duration-of note)) limit)
+           (cons note (iter (make-random-note-with-key key)
+                                   (+ index (duration-of note))
+                                   limit)))
+          ((> (+ index (duration-of note)) limit)
+           (cons (make-note-with-key key (- limit index))
+                        '()))
+          (else '())))
+
+;  tail recursive proc
+;  (define (iter bar note index limit)
+;    (cond ((< (+ index (duration-of note)) limit)
+;           (iter (stream-cons note bar)
+;                 (make-random-note-with-key key)
+;                 (+ index (duration-of note))
+;                 limit))
+;          ((> (+ index (duration-of note)) limit)
+;           (stream-cons (make-note-with-key key (- limit index)) bar))
+;           (else bar)))
+
+  (iter initial-note 0 beats))
+
 ;; make a sequence
-;; a short sequence of notes that sounds nice
-;; this means that they need to:
-;;;; - be within a similar octave range
-;;;; - be in the same key
-;;;; - be quantized to beats
-;; Stretch goal: make this conform to a certain key.
-;; Stretch goal: make velocity like natural performance (i.e. pseudorandom, and made
-;;   to resemble a real person playing)
-;; Stretch goal: make duration match other notes (i.e. sequences are consistent
-;;   in being on-beat or syncopated. 1/16 or 1/8 note runs generally play in groups
-;;   of 4 unless the beat is syncopated. basically make it sound much less random) 
-
-;; possible implementation
-;; (make-sequence (make-random-note))
-
-;;;;;; **will be fully done in milestone 3+**
-
+;; makes a bunch of random music bars based off given note, namely
+;;   all based off the same key. procedure returns an infinite stream
+;;   where it takes random bars from the list and repeats them 
 (define (make-sequence note)
-
-  (define valid-ids (make-key (id-of note)))
-  (define new-note (make-note-with-key valid-ids (make-random-duration)))
-  (stream-cons new-note (make-sequence note)))
+  (define beats (random 3 5))
+  (define key (make-key (id-of note)))
+  (define bars
+    (build-list (random 1 10) (λ (x) (make-random-bar (make-random-note-with-key key) beats))))
+  (define (iter bar)
+    (cond ((equal? bar '()) (iter (list-ref bars (- (length bars) 1))))
+          (else (stream-cons (stream-first bar) (iter (stream-rest bar))))))
+  (iter (list-ref bars (- (length bars) 1))))
 
 ;; make note list
-;; stitches together notes into a list using recursion
-;; basically appends sequences into a long list in a random number of times
-;;   up to a limit
-;; uses a list of sequences and pulls a random sequence to stich together
-;;   from that list
-
-;; MILESTONE 2: WIP. Converting to streams introduced so many problems that
-;;   I didn't have time to get this working like it did before with lists.
-;;   Implementation will be different with streams anyway, so I'm not
-;;   upset about losing any progress.
+;; prettier version of the above
 
 (define (make-note-list)
   (make-sequence (make-random-note)))
@@ -127,9 +139,7 @@
 
 ;; make the key of a note
 ;; assume note is a 1, 4, or 5 and return key based on that
-;; used for make-sequence for sequences in particular key
-;; implementation: return a list of the notes than can be
-;;    used for the key
+;;   used for make-sequence for sequences in particular key
 
 (define (make-key note-id)
   (define (make-tonic-key note-id)
@@ -168,10 +178,5 @@
 (define (bpm->second bpm beat)
   (* (/ 60 bpm) beat))
 
-;; play a note from generator through interface
-(define (play-gnote port channel note bpm)
-  1)
-
-;; play a sequence through the interface
-(define (play-sequence port channel stream bpm)
-  1)
+;; make a bpm in range 60 to 120
+(define (make-random-bpm) (random 60 120))
