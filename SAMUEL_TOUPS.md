@@ -68,17 +68,30 @@ The following code iterates through a stream of midi data and sends the appropri
           (play-midi-stream-iter out-port (stream-rest midi-stream))))
  ```
  
-The first procedure returns a thread object that immeadiately begins processing the midi data. The second method is the main loop of this. It interprets the midi data, and which is in the format that the ```midi-readwrite``` library uses, and sends the appropriate midi events to the port. It was planned to be able to react to some of the non-sound midi events, but there wasn't enough time.
- 
+The first procedure returns a thread object that immeadiately begins processing the midi data. The second method is the main loop of this. It interprets the midi data, which is in the format that the ```midi-readwrite``` library uses, and sends the appropriate midi events to the port. It was planned to be able to react to some of the non-sound midi events, but there wasn't enough time.
+
 ## 2. Opening Ports
 
-
+This code allows for opening ports and closing virtual midi ports, and connecting them to other midi devices. 
 
 ```
+(define (make-in-port) (make-rtmidi-in))
 (define (make-out-port) (make-rtmidi-out))
 
+(define (list-in-ports in) (rtmidi-ports in))
 (define (list-out-ports out) (rtmidi-ports out))
+
+(define (in-ports-length in) (length (list-in-ports in)))
 (define (out-ports-length out) (length (list-out-ports out)))
+
+(define (open-in-port in-port name)
+  (define i 0)
+  (for ([j (in-range (in-ports-length in-port))])
+    #:break (string-contains? (list-ref (list-in-ports in-port) i) name)
+    (set! i j))
+  (if (not (= i (in-ports-length in-port)))
+        (rtmidi-open-port in-port i)
+        (printf "Port ~a not found" name)))
 
 (define (open-out-port out-port name)
   (define i 0)
@@ -89,87 +102,68 @@ The first procedure returns a thread object that immeadiately begins processing 
       (rtmidi-open-port out-port i)
       (printf "Port ~a not found" name)))
 
+(define (close-in-port in-port) (rtmidi-close-port in-port))
 (define (close-out-port out-port) (rtmidi-close-port out-port))
 
 (define (send-midi-message port status data1 data2)
   (rtmidi-send-message port (list status data1 data2)))
+
+(define (read-midi-message port)
+  (sync port))
 ```
 
+I particularly like my code for opening a given port based on just part of the identifier string.
 
-## 3. Using Recursion to Accumulate Results
 
-The low-level routine for interacting with Google Drive is named ```list-children```. This accepts an ID of a 
-folder object, and optionally, a token for which page of results to produce.
-
-A lot of the work here has to do with pagination. Because it's a web interface, one can only obtain a page of
-results at a time. So it's necessary to step through each page. When a page is returned, it includes a token
-for getting the next page. The ```list-children``` just gets one page:
+## 3. Procedural Abstraction
 
 ```
-(define (list-children folder-id . next-page-token)
-  (read-json
-   (get-pure-port
-    (string->url (string-append "https://www.googleapis.com/drive/v3/files?"
-                                "q='" folder-id "'+in+parents"
-                                "&key=" (send drive-client get-id)
-                                (if (= 1 (length next-page-token))
-                                    (string-append "&pageToken=" (car next-page-token))
-                                    "")
-;                                "&pageSize=5"
-                                ))
-    token)))
-```
-The interesting routine is ```list-all-children```. This routine is directly invoked by the user.
-It optionally accepts a page token; when it's used at top level this parameter will be null.
+(define (delay-of midi-event)
+  (car midi-event))
 
-The routine uses ```let*``` to retrieve one page of results (using the above ```list-children``` procedure)
-and also possibly obtain a token for the next page.
+(define (type-of midi-event)
+  (list-ref (cadr midi-event) 0))
 
-If there is a need to get more pages, the routine uses ```append``` to pre-pend the current results with 
-a recursive call to get the next page (and possibly more pages).
+(define (channel-of midi-event)
+  (list-ref (cadr midi-event) 1))
 
-Ultimately, when there are no more pages to be had, the routine terminates and returns the current page. 
+(define (first-data-byte-of midi-event)
+  (list-ref (cadr midi-event) 2))
 
-This then generates a recursive process from the recursive definition.
-
-```
-(define (list-all-children folder-id . next-page-token)
-  (let* ((this-page (if (= 0 (length next-page-token))
-                      (list-children folder-id)
-                      (list-children folder-id (car next-page-token))))
-         (page-token (hash-ref this-page 'nextPageToken #f)))
-    (if page-token
-        (append (get-files this-page)
-              (list-all-children folder-id page-token))
-        (get-files this-page))))
+(define (second-data-byte-of midi-event)
+  (list-ref (cadr midi-event) 3))
 ```
 
-## 4. Filtering a List of File Objects for Only Those of Folder Type
-
-The ```list-all-children``` procedure creates a list of all objects contained within a given folder.
-These objects include the files themselves and other folders.
-
-The ```filter``` abstraction is then used with the ```folder?``` predicate to make a list of subfolders
-contained in a given folder:
+## 4. Sending Midi data
 
 ```
-(define (list-folders folder-id)
-  (filter folder? (list-all-children folder-id)))
+; Procedures for sending midi messages
+
+(define (note-off port channel note) (send-midi-message port (+ 128 channel) note 0))
+(define (note-on port channel note velocity) (send-midi-message port (+ 144 channel) note velocity))
+
+; plays a note for a specified length of time in seconds, length can have arbitrary precision
+; 24 seems to be the lowest note
+; 96 seems to be the highest note
+(define (play-note port channel note velocity length)
+  (thread (lambda () (note-on port channel note velocity)(sleep length)(note-off port channel note))))
+
+```
+There are additional procedures that follow much the same pattern for
+
+```
+poly-key-pressure
+control-change
+program-change
+channel-pressure
+pitch-bend
+bank-select
+channel-volume-change
+set-pan
+set-expression-controller
+set-sustain
+set-sostenuto
+set-soft-pedal
+set-local-control
 ```
 
-## 5. Recursive Descent on a Folder Hierarchy
-
-These procedures are used together in ```list-all-folders```, which accepts a folder ID and recursively
-obtains the folders at the current level and then recursively calls itself to descend completely into the folder
-hierarchy.
-
-```map``` and ```flatten``` are used to accomplish the recursive descent:
-
-```
-(define (list-all-folders folder-id)
-  (let ((this-level (list-folders folder-id)))
-    (begin
-      (display (length this-level)) (display "... ")
-      (append this-level
-              (flatten (map list-all-folders (map get-id this-level)))))))
-```
