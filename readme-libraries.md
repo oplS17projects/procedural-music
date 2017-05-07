@@ -47,6 +47,7 @@ install --mode=644 RtMidi.h RtError.h $(PREFIX)/include
 
 
 UPDATE: My fix has been pulled
+
 ~~until the racket library midi-readwrite is updated with my fix, the following file needs to be changed.~~
 
 ~~/home/USERNAME/.racket/6.8/pkgs/midi-readwrite/midi-readwrite/midi-read.rkt~~
