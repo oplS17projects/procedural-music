@@ -26,9 +26,9 @@ The code uses two main libraries:
 Here is a discussion of the most essential procedures, with a focus on **how they embody ideas from 
 UMass Lowell's COMP.3010 Organization of Programming languages course.** 
 
-Five examples are shown and they are individually numbered. The titles of each section highlight the course concepts embodied.
+Four examples are shown and they are individually numbered. The titles of each section highlight the course concepts embodied.
 
-## 1. Playing a Stream of Midi data
+## 1. Using Streams to play Midi data
 
 The following code iterates through a stream of midi data and sends the appropriate midi event to a midi port.
 
@@ -68,11 +68,11 @@ The following code iterates through a stream of midi data and sends the appropri
           (play-midi-stream-iter out-port (stream-rest midi-stream))))
  ```
  
-The first procedure returns a thread object that immeadiately begins processing the midi data. The second method is the main loop of this. It interprets the midi data, which is in the format that the ```midi-readwrite``` library uses, and sends the appropriate midi events to the port. It was planned to be able to react to some of the non-sound midi events, but there wasn't enough time.
+The first procedure returns a thread object that immeadiately begins processing the midi data. The second method is the main loop of this. It interprets the midi data, which is in the format that the ```midi-readwrite``` library uses, and sends the appropriate midi events to the port. It was planned to be able to react to some of the non-sound midi events, which would have required more time.
 
-## 2. Opening Ports
+## 2. Using Procedures to Open and Close Ports
 
-This code allows for opening ports and closing virtual midi ports, and connecting them to other midi devices. 
+This code allows for opening and closing midi ports, and connecting them to other midi devices.
 
 ```
 (define (make-in-port) (make-rtmidi-in))
@@ -134,7 +134,7 @@ I particularly like my code for opening a given port based on just part of the i
   (list-ref (cadr midi-event) 3))
 ```
 
-## 4. Sending Midi data
+## 4. Constructing Procedures Using Lambda Functions to Send Midi data
 
 ```
 ; Procedures for sending midi messages
