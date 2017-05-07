@@ -139,6 +139,8 @@ A set of procedures was created for accessing the different parts of a midi even
 
 ## 4. Constructing Procedures Using Lambda Functions to Send Midi data
 
+Lambda functions were used in the creation of thread objects. This code also further abstracts the sending of midi data by providing procedures for starting and stopping notes, and a single procedure which calls them both for playing a note for a length of time.
+
 ```
 ; Procedures for sending midi messages
 
@@ -152,7 +154,7 @@ A set of procedures was created for accessing the different parts of a midi even
   (thread (lambda () (note-on port channel note velocity)(sleep length)(note-off port channel note))))
 
 ```
-There are additional procedures that follow much the same pattern for
+There are additional procedures that follow much the same pattern for other midi messages, but at the moment only the channel messages have been implemented, system exclusive messages and meta messages are not finished.
 
 ```
 poly-key-pressure
