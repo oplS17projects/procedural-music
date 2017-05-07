@@ -70,32 +70,32 @@ The following code iterates through a stream of midi data and sends the appropri
  
 The first procedure returns a thread object that immeadiately begins processing the midi data. The second method is the main loop of this. It interprets the midi data, and which is in the format that the ```midi-readwrite``` library uses, and sends the appropriate midi events to the port. It was planned to be able to react to some of the non-sound midi events, but there wasn't enough time.
  
-## 2. Selectors and Predicates using Procedural Abstraction
+## 2. Opening Ports
 
-A set of procedures was created to operate on the core ```drive-file``` object. Drive-files may be either
-actual file objects or folder objects. In Racket, they are represented as a hash table.
 
-```folder?``` accepts a ```drive-file```, inspects its ```mimeType```, and returns ```#t``` or ```#f```:
 
 ```
-(define (folder? drive-file)
-  (string=? (hash-ref drive-file 'mimeType "nope") "application/vnd.google-apps.folder"))
+(define (make-out-port) (make-rtmidi-out))
+
+(define (list-out-ports out) (rtmidi-ports out))
+(define (out-ports-length out) (length (list-out-ports out)))
+
+(define (open-out-port out-port name)
+  (define i 0)
+  (for ([j (in-range (out-ports-length out-port))])
+    #:break (string-contains? (list-ref (list-out-ports out-port) i) name)
+    (set! i j))
+  (if (not (= i (out-ports-length out-port)))
+      (rtmidi-open-port out-port i)
+      (printf "Port ~a not found" name)))
+
+(define (close-out-port out-port) (rtmidi-close-port out-port))
+
+(define (send-midi-message port status data1 data2)
+  (rtmidi-send-message port (list status data1 data2)))
 ```
 
-Another object produced by the Google Drive API is a list of drive-file objects ("```drive#fileList```"). 
-When converted by the JSON library,
-this list appears as hash map. 
 
-```get-files``` retrieves a list of the files themselves, and ```get-id``` retrieves the unique ID
-associated with a ```drive#fileList``` object:
-
-```
-(define (get-files obj)
-  (hash-ref obj 'files))
-
-(define (get-id obj)
-  (hash-ref obj 'id))
-```
 ## 3. Using Recursion to Accumulate Results
 
 The low-level routine for interacting with Google Drive is named ```list-children```. This accepts an ID of a 
