@@ -46,28 +46,29 @@ the following line needs to be commented out
 install --mode=644 RtMidi.h RtError.h $(PREFIX)/include
 
 
+UPDATE: My fix has been pulled
+~~until the racket library midi-readwrite is updated with my fix, the following file needs to be changed.~~
 
-until the racket library midi-readwrite is updated with my fix, the following file needs to be changed.
+~~/home/USERNAME/.racket/6.8/pkgs/midi-readwrite/midi-readwrite/midi-read.rkt~~
 
-/home/USERNAME/.racket/6.8/pkgs/midi-readwrite/midi-readwrite/midi-read.rkt
+~~the following changes need to be made~~
 
-the following changes need to be made
+~~(define channel (bitwise-and #x7 next-byte))~~
 
-(define channel (bitwise-and #x7 next-byte))
+~~needs to be changed to~~
 
-needs to be changed to
+~~(define channel (bitwise-and #xf next-byte))~~
 
-(define channel (bitwise-and #xf next-byte))
+~~and~~
 
-and
+~~(define channel (bitwise-and #x7 prior-event-type-byte))~~
 
-(define channel (bitwise-and #x7 prior-event-type-byte))
+~~needs to be changed to~~
 
-needs to be changed to
+~~(define channel (bitwise-and #xf prior-event-type-byte))~~
 
-(define channel (bitwise-and #xf prior-event-type-byte))
+~~this is to fix an issue where midi channels 9-16 were being mapped onto midi channels 1-8~~
 
-this is to fix an issue where midi channels 9-16 were being mapped onto midi channels 1-8
 
 
 
