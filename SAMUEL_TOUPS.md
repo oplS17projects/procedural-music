@@ -1,4 +1,4 @@
-# PRocedural-Music
+# Procedural-Music
 
 ## Samuel Toups
 ### May 6, 2017
@@ -28,19 +28,47 @@ UMass Lowell's COMP.3010 Organization of Programming languages course.**
 
 Five examples are shown and they are individually numbered. The titles of each section highlight the course concepts embodied.
 
-## 1. Initialization using a Global Object
+## 1. Playing a Stream of Midi data
 
-The following code creates a global object, ```drive-client``` that is used in each of the subsequent API calls:
+The following code iterates through a stream of midi data and sends the appropriate midi event to a midi port.
 
 ```
-(define drive-client
-  (oauth2-client
-   #:id "548798434144-6s8abp8aiqh99bthfptv1cc4qotlllj6.apps.googleusercontent.com"
-   #:secret "<email me for secret if you want to use my API>"))
+(define (play-midi-stream out-port midi-stream)
+  (thread (λ () (play-midi-stream-iter out-port midi-stream))))
+
+(define (play-midi-stream-iter out-port midi-stream)
+  (if (not (stream-empty? midi-stream))
+      (let ([midi (stream-first midi-stream)])
+          ;(pretty-print (stream-ref midi-stream 0))
+          (cond ((null? midi) 0)
+                ((equal? (type-of midi) 'note-off)
+                 (sleep (delay-of midi))
+                 (note-off out-port (channel-of midi) (first-data-byte-of midi)))
+                ((equal? (type-of midi) 'note-on)
+                 (sleep (delay-of midi))
+                 (note-on out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'aftertouch)
+                 (sleep (delay-of midi))
+                 (poly-key-pressure out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'control-change)
+                 (sleep (delay-of midi))
+                 (control-change out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'program-change)
+                 (sleep (delay-of midi))
+                 (program-change out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'channel-aftertouch)
+                 (sleep (delay-of midi))
+                 (channel-pressure out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ((equal? (type-of midi) 'pitch-bend)
+                 (sleep (delay-of midi))
+                 (pitch-bend out-port (channel-of midi) (first-data-byte-of midi) (second-data-byte-of midi)))
+                ; System Exclusive messages need to be handled
+                ; Midi File Meta messages need to be handled
+                (else (sleep 0))))
+          (play-midi-stream-iter out-port (stream-rest midi-stream))))
  ```
  
- While using global objects is not a central theme in the course, it's necessary to show this code to understand
- the later examples.
+The first procedure returns a thread object that immeadiately begins processing the midi data. The second method is the main loop of this. It interprets the midi data, and which is in the format that the ```midi-readwrite``` library uses, and sends the appropriate midi events to the port. It was planned to be able to react to some of the non-sound midi events, but there wasn't enough time.
  
 ## 2. Selectors and Predicates using Procedural Abstraction
 
